@@ -1,0 +1,41 @@
+#!/bin/sh
+# =============================================================
+# MediaControl — control multimedia con playerctl (MPRIS mpris)
+# Port de JaKoolit MediaCtrl.sh y del MediaControl de gh0stzk,
+# simplificados a playerctl puro (sin ffmpeg/covers).
+# Uso: MediaControl --next | --previous | --toggle | --stop
+#               | --title | --artist | --status | --player
+# =============================================================
+
+# cualquier reproductor con MPRIS (spotify, mpd+mpDris2, firefox, vlc...)
+P() { playerctl --all-players "$@" 2>/dev/null; }
+# preferir un reproductor activo si hay varias instancias
+ACTIVE=$(playerctl -l 2>/dev/null | head -n1)
+
+case "$1" in
+    --next)
+        [ -n "$ACTIVE" ] && playerctl --player="$ACTIVE" next
+        ;;
+    --previous)
+        [ -n "$ACTIVE" ] && playerctl --player="$ACTIVE" previous
+        ;;
+    --toggle)
+        [ -n "$ACTIVE" ] && playerctl --player="$ACTIVE" play-pause
+        ;;
+    --stop)
+        [ -n "$ACTIVE" ] && playerctl --player="$ACTIVE" stop
+        ;;
+    --title)
+        playerctl metadata --player="$ACTIVE" --format "{{title}}" 2>/dev/null || echo "Sin reproductor"
+        ;;
+    --artist)
+        playerctl metadata --player="$ACTIVE" --format "{{artist}}" 2>/dev/null || echo ""
+        ;;
+    --status)
+        playerctl status --player="$ACTIVE" 2>/dev/null || echo Stopped
+        ;;
+    --player)
+        echo "${ACTIVE:-none}"
+        ;;
+    *) echo "MediaControl: uso --next/--previous/--toggle/--stop" ;;
+esac

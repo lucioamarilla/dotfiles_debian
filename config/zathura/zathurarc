@@ -1,0 +1,17 @@
+# =============================================================
+# zathurarc — visor PDF liviano (dotfiles Debian)
+# =============================================================
+set database "sqlite"
+set font "JetBrains Mono 10"
+set adjust-mode "smart"
+set guioptions ""
+set selection-clipboard "clipboard"
+set recolor false
+set recolor-darkcolor "#c0caf5"
+set recolor-lightcolor "#16161e"
+set statusbar-h-padding 4
+set statusbar-v-padding 4
+
+# binds
+map <C-Right> zoom in
+map <C-Left> zoom out

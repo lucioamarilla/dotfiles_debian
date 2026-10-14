@@ -1,0 +1,102 @@
+# Keybinds — Dotfiles Debian BSPWM (cheat: Alt+F1)
+# Fórmula: rofi dmenu scrolleable list below.
+
+TERMINAL
+super + Return .............. terminal (alacritty)
+super + shift + Return ...... terminal flotante (dropdown)
+super + alt + Return ........ toggle scratchpad terminal
+super + alt + t ............. selector de terminal
+super + alt + o ............. notas rápidas (nvim scratchpad)
+
+LANZADORES Y MENÚS
+super + d / super + space ... app launcher (rofi)
+alt + space ................. selector de tema (dark/light)
+ctrl + alt + p .............. power menu (rofi)
+super + s ................... búsqueda web (rofi)
+super + alt + c ............. calculadora (qalc + preview)
+super + alt + e ............. emoji picker
+super + alt + v ............. clipboard manager
+super + alt + n ............. gestor de red (rofi)
+super + alt + b ............. gestor bluetooth (rofi)
+super + shift + n ........... panel notificaciones dunst
+super + alt + u ............. updates apt (rofi)
+super + w ................... wallpaper selector (rofi)
+super + alt + k ............. selector de layout de teclado
+super + alt + x ............. gestor de contraseñas (pass)
+super + alt + d ............. configurar monitores (arandr)
+alt + F1 .................... ESTE CHEATSHEET
+
+CAPTURAS
+Print ....................... screenshot full a archivo
+super + Print / super+alt+s . menú de capturas (rofi)
+super + shift + Print ....... captura de área → clipboard
+alt + Print ................. captura ventana activa → clipboard
+super + shift + s ........... flameshot (anotaciones)
+
+VENTANAS
+super + q / super + x ....... cerrar ventana
+super + shift + q/x ......... matar proceso
+super + f ................... fullscreen toggle
+super + space ............... float toggle
+super + shift + p ........... pseudotiled
+super + alt + space ......... todas flotantes en desktop
+super + t ................... volver a tiled
+super + alt + l ............. layout monocle/tiled toggle
+super + m ................... toggle split ratio (44/50/56)
+super + equal ............... balancear ventanas equitably
+super + slash ............... rotar Árbol de ventanas 90°
+
+FOCUS / MOVE / RESIZE (estilo JaKoolit)
+super + flechas ............. focus (como super+movefocus)
+super + alt + flechas ....... swap ventana vecina
+super + ctrl + flechas ...... swap ventana vecina (alias JaKoolit)
+super + shift + flechas ..... resize
+alt + Tab ................... window switcher rofi
+super + ; / super + ' ....... focus último nodo
+super + shift + ; / ' ....... focus último desktop
+
+WORKSPACES
+super + 1-0 ................. ir a workspace
+super + shift + 1-0 ......... mover ventana (sigue)
+super + ctrl + 1-0 .......... mover ventana (sin seguir)
+super + Tab / shift+Tab ..... desktop next / prev
+super + rueda mouse ......... desktop next/prev
+alt + h ..................... ocultar ventana ("special workspace")
+ctrl + alt + h .............. menú ventanas ocultas
+
+APPS
+super + e ................... file manager (thunar)
+super + b ................... navegador
+super + y ................... yazi/ranger terminal
+super + v ................... neovim
+super + n ................... editor GUI (geany)
+super + shift + m ........... ncmpcpp música
+super + p ................... pavucontrol mixer
+super + x ................... pavucontrol (alias)
+
+SISTEMA
+ctrl + alt + l .............. lock screen
+ctrl + alt + Delete ......... cerrar sesión (bspc quit)
+ctrl + super + alt + q ...... cerrar sesión (alias)
+super + Escape .............. recargar keybinds sxhkd
+super + alt + r ............. SoftReload (polybar+picom+dunst+docs)
+super + alt + h / u ......... ocultar/mostrar la barra
+ctrl + alt + b .............. toggle barra (JaKoolit)
+ctrl + super + alt + p ...... apagar
+ctrl + super + alt + r ...... reiniciar
+
+HARDWARE (ThinkPad)
+XF86 Audio Raise/Lower/Mute . volumen (pactl)
+super + alt + minus/plus/eq . volumen (sin Fn)
+XF86 MicMute / super+alt+i .. mute micrófono
+XF86 BrightnessUp/Down ...... brillo (brightnessctl)
+XF86 Audio Play/Pause/Stop .. playerctl media
+XF86 Audio Prev/Next ........ playerctl media
+XF86 WLAN / RFKill .......... modo avión
+XF86 Sleep .................. suspender
+ctrl + alt + plus/minus ..... transparencia ventana activa
+
+EXTRAS
+super + alt + g ............. grabadora de pantalla (ffmpeg)
+super + alt + y ............. clima (wttr.in)
+# Fin del cheat — más detalles en README.md

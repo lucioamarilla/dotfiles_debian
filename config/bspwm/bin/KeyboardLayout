@@ -1,0 +1,26 @@
+#!/bin/sh
+# =============================================================
+# KeyboardLayout — selector de layouts con rofi
+# Guarda en ~/.config/bspwm/.kb-layout y aplica setxkbmap.
+# apt: x11-xserver-utils, rofi
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+STATE="$HOME/.config/bspwm/.kb-layout"
+
+layouts="latam
+es
+us
+us-altgr-intl
+br"
+
+sel=$(printf '%s\n' "$layouts" | rofi -dmenu -p "Layout" -theme "$T" 2>/dev/null)
+[ -z "$sel" ] && exit 0
+
+mkdir -p "$HOME/.config/bspwm"
+if setxkbmap "$sel" 2>/dev/null; then
+    echo "$sel" > "$STATE"
+    dunstify -t 1200 "Keymap" "$sel activado"
+else
+    dunstify -t 2000 "KB" "layout '$sel' inválido"
+fi

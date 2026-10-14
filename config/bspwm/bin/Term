@@ -1,0 +1,82 @@
+#!/bin/sh
+# =============================================================
+# Term — lanzador de terminal y de apps terminales
+# Uso:
+#   Term --normal (o sin args) : terminal normal
+#   Term --floating            : terminal flotante centrada (dropdown JaKoolit)
+#   Term --selector            : rofi para elegir alacritty/kitty/st
+#   Term --yazi | --nvim | --files | --music | --editor | --updates
+# =============================================================
+
+# Terminal guardada por --selector (fallback: alacritty)
+if [ -f "$HOME/.config/bspwm/.terminal" ]; then
+    TERM_BIN=$(cat "$HOME/.config/bspwm/.terminal")
+else
+    TERM_BIN="${TERMINAL:-alacritty}"
+fi
+
+in_term() {
+    case "$TERM_BIN" in
+        alacritty) exec alacritty -e "$@" ;;
+        kitty)     exec kitty "$@" ;;
+        *)         exec "$TERM_BIN" -e "$@" ;;
+    esac
+}
+
+case "$1" in
+    --normal|"")
+        exec "$TERM_BIN"
+        ;;
+    --floating)
+        # Geometría del monitor primario
+        eval "$(xrandr --query | awk '/ primary|default/ || / connected/ {split($4,xy,"+"); split(xy[1],wh,"x"); print "SW=" wh[1] " SH=" wh[2] " SX=" xy[2] " SY=" xy[3]; exit}')"
+        W=$(( SW * 65 / 100 ));
+        H=$(( SH * 55 / 100 ));
+        X=$(( (SW - W) / 2 ));
+        Y=$(( (SH - H) / 2 ));
+        case "$TERM_BIN" in
+            alacritty) alacritty --class floating & ;;
+            kitty)     kitty --class floating & ;;
+            *)         "$TERM_BIN" & ;;
+        esac
+        sleep 0.15
+        NODE=$(bspc query -N -n focused 2>/dev/null)
+        if [ -n "$NODE" ]; then
+            bspc node "$NODE" -t floating -g "${W}x${H}+${X}+${Y}"
+        fi
+        ;;
+    --selector)
+        sel=$(printf 'alacritty\nkitty\n' | rofi -dmenu -p "Terminal" \
+            -theme "$HOME/.config/rofi/themes/theme-active.rasi" 2>/dev/null)
+        [ -z "$sel" ] && exit 0
+        if ! command -v "$sel" >/dev/null 2>&1; then
+            dunstify -t 1500 "Term" "$sel no está instalado"
+            exit 1
+        fi
+        mkdir -p "$HOME/.config/bspwm"
+        echo "$sel" > "$HOME/.config/bspwm/.terminal"
+        dunstify -t 1200 "Term" "$sel guardado como terminal por defecto"
+        ;;
+    --yazi)
+        if command -v yazi >/dev/null 2>&1; then in_term yazi
+        elif command -v ranger >/dev/null 2>&1; then in_term ranger
+        else exec "$TERM_BIN"; fi
+        ;;
+    --nvim)       in_term nvim ;;
+    --files)      # JaKoolit $files
+        exec "${FILEMANAGER:-thunar}" ;;
+    --music)
+        if command -v ncmpcpp >/dev/null 2>&1; then in_term ncmpcpp
+        else dunstify -t 2000 "Music" "Instalá mpd + ncmpcpp"; fi
+        ;;
+    --editor)
+        in_term nvim 2>/dev/null || exec "${EDITOR:-geany}"
+        ;;
+    --updates)
+        case "$TERM_BIN" in
+            alacritty) exec alacritty -e sh -c 'apt list --upgradable 2>/dev/null | sed 1d; echo; read -n1 -r -p "Enter para cerrar…" junk' ;;
+            *) exec "$TERM_BIN" -e sh -c 'apt list --upgradable 2>/dev/null | sed 1d; read x' ;;
+        esac ;;
+    *)
+        echo "uso: Term --normal | --floating | --selector | --yazi | --nvim | --files | --music | --editor | --updates" ;;
+esac

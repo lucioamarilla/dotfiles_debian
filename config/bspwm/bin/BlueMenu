@@ -1,0 +1,46 @@
+#!/bin/sh
+# =============================================================
+# BlueMenu — bluetooth rofi applet (port de rofi-bluetooth)
+# apt: bluetoothctl, rofi (bluez + bluez-tools opcional)
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+
+status_and_devices() {
+    P=$(bluetoothctl show 2>/dev/null | grep 'Powered' | awk '{print $2}')
+    SP=$(systemctl is-active bluetooth 2>/dev/null)
+    printf 'Bluetooth: %s (servicio %s)\n' "${P:-?}" "$SP"
+    bluetoothctl devices 2>/dev/null | awk '{$1=""; print substr($0,2)}' | sed 's/MAC.*Device /Device /'
+}
+
+# Nombres de devices
+BD=$(bluetoothctl devices 2>/dev/null | sed 's/Device //')
+
+menu() {
+    printf '⏻ Power (toggle)\n❍ Scaneo\n✂ Conectar/Desconectar device\n🗑 Forget device\n' |
+        rofi -dmenu -p "BT" -theme "$T" 2>/dev/null
+}
+
+sel=$(menu)
+
+case "$sel" in
+    Power*)
+        S=$(bluetoothctl show | awk '/Powered/ {print $2}')
+        echo -e "power $([ "$S" = "yes" ] && echo off || echo on)" | bluetoothctl 2>/dev/null
+        ;;
+    Scaneo)
+        x=$(bluetoothctl --timeout 12 scan on 2>/dev/null | grep 'Device' | grep -v 'CHANGED' | head -n5)
+        echo "$BD" | rofi -dmenu -p "BT devuelve" -theme "$T" >/dev/null 2>&1
+        ;;
+    Conectar*)
+        mac_add=$(echo -e "$BD" | rofi -dmenu -p "BT deploy" -theme "$T" 2>/dev/null | \
+            awk '{print $1}')
+        [ -n "$mac_add" ] && bluetoothctl connect "$mac_add" >/dev/null 2>&1 && \
+            dunstify -t 1500 "BT" "Conectado: $mac_add" || \
+            dunstify -t 2500 -u critical "BT" "Falló conexión"
+        ;;
+    Forget*)
+        mac_host=$(echo -e "$BD" | rofi -dmenu -p "BT forget" -theme "$T" 2>/dev/null | awk '{print $1}')
+        [ -n "$mac_host" ] && bluetoothctl remove "$mac_host" >/dev/null 2>&1
+        ;;
+esac

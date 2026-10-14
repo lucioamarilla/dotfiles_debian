@@ -1,0 +1,15 @@
+#!/bin/sh
+# =============================================================
+# Help — cheatsheet completo de keybinds (Alt+F1)
+# Muestra ~/.config/bspwm/keybinds.txt en un rofi scrolleable
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+KB="$HOME/.config/bspwm/keybinds.txt"
+
+if [ -f "$KB" ]; then
+    cat "$KB" | rofi -dmenu -i -p "Keybinds [Enter/Esc cierra]" \
+        -theme "$T" 2>/dev/null
+else
+    dunstify -t 2500 "Help" "keybinds.txt no encontrado (reinstalá dotfiles)"
+fi

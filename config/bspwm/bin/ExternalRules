@@ -1,0 +1,13 @@
+#!/bin/sh
+# =============================================================
+# ExternalRules — reglas de ventanas para BSPWM
+# Apps de control felotan y se centran (como WindowRules.jaK).
+# apt: requiere bspwm >= 0.9.7 (trixie 0.9.10 OK)
+# =============================================================
+
+case "$WM_CLASS" in
+    pavucontrol|pavucontrol-gtk|blueman-manager|nm-connection-editor|flameshot|qalculate-gtk|gnome-calculator|pwvucontrol|gcr-prompter|xev)
+        printf 'state=floating\nborder=off\ncenter=on\n'
+        ;;
+esac
+exit 0

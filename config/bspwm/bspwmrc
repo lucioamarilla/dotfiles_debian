@@ -1,0 +1,77 @@
+#!/bin/sh
+# =============================================================
+#  bspwmrc — Dotfiles Debian (BSPWM + X11)
+#  Autostart mínimo: nada pesado, sin eww/ags/clipcat.
+# =============================================================
+
+# ── Entorno ────────────────────────────────────────────────
+export PATH="$HOME/.config/bspwm/bin:$PATH"
+export XDG_CURRENT_DESKTOP="bspwm"
+
+# Amarres Java ( aplicaciones Java no "se apagan" en WM sin padre)
+export _JAVA_AWT_WM_NONREPARENTING=1
+
+# GTK/QT coherentes (compatibilidad máxima con programas)
+# QT se maneja con qt5ct/qt6ct si están instalados.
+[ -n "$TERM" ] || export TERM="xterm-256color"
+
+# ── Monitores ──────────────────────────────────────────────
+bspc config remove_disabled_monitors true
+bspc config remove_unplugged_monitors true
+bspc config merge_overlapping_monitors true
+MonitorSetup --auto
+
+# ── Workspaces ─────────────────────────────────────────────
+# 10 escritorios como JaKoolit; el último es el "special" para floats
+bspc monitor -a I II III IV V VI VII VIII IX X
+
+# ── Comportamiento BSPWM ───────────────────────────────────
+bspc config external_rules_command "$HOME/.config/bspwm/bin/ExternalRules"
+
+bspc config window_gap              6
+bspc config border_width            2
+bspc config split_ratio             0.52
+bspc config single_monocle          true
+bspc config automatic_scheme        longest_side
+bspc config initial_polarity        second_child
+bspc config removal_adjustment      true
+
+# Nombres de escritorios en polybar (números suficientes)
+# ── Focus / puntero ────────────────────────────────────────
+bspc config focus_follows_pointer   true
+bspc config pointer_follows_focus   false
+bspc config pointer_follows_monitor  true
+bspc config pointer_modifier         mod4
+bspc config pointer_action1          move
+bspc config pointer_action2          resize_side
+bspc config pointer_action3          resize_corner
+
+# ── Colores (ThemeSwitch reescribe ~/.config/bspwm/.theme) ─
+ThemeSwitch --sync >/dev/null 2>&1
+
+# ── Daemons (idempotente: no relanza si ya corre) ─────────
+run() {
+    if ! pidof -x "$1" >/dev/null; then
+        "$@" &
+    fi
+}
+
+# Sistema de variables para polybar (red/batería/GPU)
+"$HOME/.config/bspwm/bin/SetSysVars" >/dev/null 2>&1
+"$HOME/.config/bspwm/bin/IdleSetup"  >/dev/null 2>&1   # xautolock + xset dpms
+
+# Teclas/daemons del entorno
+run sxhkd -c "$HOME/.config/sxhkd/sxhkdrc"
+
+# Compositor — preset según hardware (hw=glx / vm=xrender)
+run picom --config "$HOME/.config/picom/picom.conf"
+
+# Barra
+"$HOME/.config/polybar/launch.sh" >/dev/null 2>&1 &
+
+# Kbd rate + numlock
+xset r rate 300 50 2>/dev/null
+
+# ── Autostart de usuario (gateway único) ─────────────────
+# Agregá apps acá o en ~/.config/bspwm/autostart.sh (no versionado)
+[ -f "$HOME/.config/bspwm/autostart.sh" ] && "$HOME/.config/bspwm/autostart.sh" &

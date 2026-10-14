@@ -1,0 +1,35 @@
+#!/bin/sh
+# =============================================================
+# Brightness — brillo pantalla con dunst bar (port gh0stzk)
+# apt: brightnessctl, dunst
+# =============================================================
+
+STEPS=5
+MIN=2
+
+extract_pct() { awk -F '[()%]' '/Current brightness:/ {print $2}'; }
+get_b() { brightnessctl i 2>/dev/null | extract_pct; }
+
+notify_b() {
+    dunstify "Brillo $1%" -r 5555 -h int:value:"$1"
+}
+
+adjust() {
+    cur=$(get_b)
+    case "$1" in
+        up)
+            [ "$cur" -le "$MIN" ] && set="+" || set="${STEPS}%+"
+            ;;
+        down)
+            threshold=$((MIN + STEPS))
+            [ "$cur" -le "$threshold" ] && set="${MIN}%" && [ "${cur}" -eq 0 ] && exit 0 || set="${STEPS}%-"
+            ;;
+    esac
+    new=$(brightnessctl set "$set" 2>/dev/null | extract_pct)
+    notify_b "$new"
+}
+
+case "$1" in
+    up|down) adjust "$1" ;;
+    *) get_b ;;
+esac

@@ -1,0 +1,66 @@
+#!/bin/sh
+# =============================================================
+# ScreenShoTer — menú de capturas con maim (port de gh0stzk)
+# guarda en ~/Imágenes/ScreenShots y copia al portapapeles
+# apt: maim, xclip, rofi, dunst, imagemagick (shape clip)
+# Modos directos: ScreenShoTer --full | --area | --window | --delay 5
+# =============================================================
+
+dir="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Imágenes")/ScreenShots"
+[ -d "$dir" ] || mkdir -p "$dir"
+filename="$dir/Shot-$(date +%Y-%m-%d-%H%M%S).png"
+_theme="$HOME/.config/rofi/themes/theme-active.rasi"
+
+# Geometría del monitor bajo el cursor:
+get_geo() {
+    if command -v jq >/dev/null 2>&1; then
+        bspc query -T -m pointed | jq -r '.rectangle | "\(.width)x\(.height)+\(.x)+\(.y)"'
+    else
+        bspc query -T -m pointed | \
+            python3 -c 'import json,sys; r=json.load(sys.stdin)["rectangle"]; print(f"{r["width"]}x{r["height"]}+{r["x"]}+{r["y"]}")'
+    fi
+}
+
+shot() {
+    mode="$1"
+    set -- -u
+    case "$mode" in
+        area)    set -- -s -o -l ;;
+        window)  set -- -u -i "$(xdotool getactivewindow)" ;;
+        full)    geo=$(get_geo 2>/dev/null)
+                 [ -n "$geo" ] && set -- -u -g "$geo" ;;
+    esac
+    if maim "$@" "$filename" 2>/dev/null; then
+        xclip -selection clipboard -t image/png -i "$filename" 2>/dev/null
+        dunstify -r 699 -i "$filename" "Captura" "Guardada en $dir y copiada"
+    else
+        dunstify -r 699 "Captura" "Cancelada"
+    fi
+}
+
+# Modo directo por argumento
+case "$1" in
+    --full)   shot full   ; exit 0 ;;
+    --area)   shot area   ; exit 0 ;;
+    --window) shot window ; exit 0 ;;
+esac
+
+opts="󰐥 |Monitor actual
+ 󰆞 |Área
+ 󰍛 |Ventana activa
+ 󰔝 |Con delay 3s
+ 󰍹 |Todos los monitores"
+
+sel=$(printf '%s\n' "$opts" | rofi -dmenu -p Screenshot \
+    -mesg "Dir: $dir" -theme "$_theme" 2>/dev/null)
+[ -z "$sel" ] && exit 0
+
+case "$sel" in
+    *actual*)   shot full ;;
+    *Área*)     shot area ;;
+    *Ventana*)  shot window ;;
+    *delay*)    sleep 3; shot full ;;
+    *Todos*)    maim -u "$filename" 2>/dev/null; \
+                xclip -selection clipboard -t image/png -i "$filename" 2>/dev/null; \
+                dunstify -r 699 -i "$filename" "Captura" "Todos los monitores" ;;
+esac

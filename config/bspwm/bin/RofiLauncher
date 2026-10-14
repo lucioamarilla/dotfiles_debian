@@ -1,0 +1,7 @@
+#!/bin/sh
+# =============================================================
+# RofiLauncher — app launcher (rofi drun)
+# =============================================================
+
+exec rofi -show drun -modi "drun,run,window" \
+    -theme "$HOME/.config/rofi/themes/theme-active.rasi"

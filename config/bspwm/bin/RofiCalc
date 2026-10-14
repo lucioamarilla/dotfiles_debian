@@ -1,0 +1,27 @@
+#!/bin/sh
+# =============================================================
+# RofiCalc — calculadora rofi (JaKoolit RofiCalc)
+# qalculate en CLI (deb: qalc < qalculate CLI)
+# Evaluación continua y copia al portapapeles.
+# apt: rofi, qalc (binary qalculate)
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+HIST_FILE="$HOME/.cache/rofi-calc.history"
+
+save_to_hist() { echo "$1" >> "$HIST_FILE"; }
+
+while true; do
+    historical=""
+    [ -f "$HIST_FILE" ] && historical=$(tac "$HIST_FILE" | head -n 5)
+    q=$(printf '%s\n' "exit=" $(echo "$historical" | head -n0) | rofi -dmenu -p "qalc" \
+        -theme "$T" 2>/dev/null)
+    # en UI: escribir la cuenta, resultado sale en prompt del next loop
+    [ -z "$q" ] && exit 0
+    [ "$q" = "exit=" ] && exit 0
+    result=$(qalc --color=never -t 4 "$q" 2>/dev/null)
+    save_to_hist "$q = $result"
+    printf '%s' "$result" | xclip -selection clipboard 2>/dev/null
+    rofi -e "$q = $result   (copiado)" -theme "$T" 2>/dev/null
+    [ $? -eq 1 ] && exit 0
+done

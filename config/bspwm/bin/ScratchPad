@@ -1,0 +1,67 @@
+#!/bin/sh
+# =============================================================
+# ScratchPad — terminal / notas flotantes persistentes (extra)
+# Port liviano del ScratchPad de bspwm: sticky node + mark
+# Modos: --term (alacritty) | --notes (nvim notepad) | --hide | --show | --toggle
+# apt: alacritty, nvim, bspwm
+# =============================================================
+
+TERMCMD="${TERMINAL:-alacritty}"
+
+find_marked() { bspc query -N -n ".floating.sticky.marked" 2>/dev/null; }
+
+show() {
+    NODE=$(find_marked)
+    [ -z "$NODE" ] && return
+    bspc node "$NODE" -h off -f
+    bspc node "$NODE" --layer above 2>/dev/null || bspc node "$NODE" -f
+}
+
+hide() {
+    NODE=$(find_marked)
+    [ -n "$NODE" ] && bspc node "$NODE" -h on
+}
+
+toggle() {
+    NODE=$(find_marked)
+    if [ -z "$NODE" ]; then
+        spawn
+    else
+        if bspc query -N -n ".hidden" | grep -q "$NODE"; then
+            show
+        else
+            hide
+        fi
+    fi
+}
+
+    spawn() {
+        mode="$1"
+        case "$mode" in
+            --notes)
+                NOTES="$HOME/.notes.org"
+                $TERMCMD --class scratch -T scratch -e nvim "$NOTES" & ;;
+            *)
+                $TERMCMD --class scratch -T scratch & ;;
+        esac
+        sleep 0.35
+        NODE=$(bspc query -N -n focused 2>/dev/null)
+        [ -n "$NODE" ] && {
+            d=$(xrandr --query | awk '/ primary/ {split($4,xy,"+"); n=split(xy[1],wh,"x"); print wh[1], wh[2]; exit}')
+            SW=$(echo $d | awk '{print $1}'); SH=$(echo $d | awk '{print $2}')
+            W=$((SW * 70 / 100)); H=$((SH * 62 / 100))
+            X=$(( SW / 2 - W / 2 )); Y=$(( SH / 16 ))
+            bspc node "$NODE" -t floating
+            bspc node "$NODE" -g sticky=on
+            bspc node "$NODE" -g "${W}x${H}+${X}+${Y}" 2>/dev/null
+            bspc node "$NODE" -n scratchpad
+        }
+    }
+
+case "$1" in
+    --notes) toggle; exit ;;
+    --term|"") toggle; exit ;;
+    --hide) hide ;;
+    --show) show ;;
+    *) toggle ;;
+esac

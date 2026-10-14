@@ -1,0 +1,38 @@
+#!/bin/sh
+# =============================================================
+# MonitorSetup — setup básico de monitores
+# --auto : usa xrandr: activa宗旨 el monitor primario con su modo óptimo
+#          (para portátil: eDP-1; externos solo si están conectados)
+# --menu : abre arandr para configurar manualmente
+# apt: x11-xserver-utils, arandr
+# =============================================================
+
+case "$1" in
+    --menu|-m)
+        exec arandr
+        ;;
+esac
+
+# Detectar pantallas conectadas
+conns=$(xrandr --query 2>/dev/null | awk '/ connected/ {print $1}')
+[ -n "$conns" ] || exit 0
+
+# Monitor interno tipo eDP/LVDS
+LAPTOP=$(echo "$conns" | grep -E '^(eDP|LVDS)' | head -n1)
+
+# Preferir la pantalla interna; si hay externa y también interna,
+# extender a la externa; si no hay interna, usar la primera externa.
+if [ -n "$LAPTOP" ]; then
+    # Posicionar externas a la derecha en cascada
+    X=0
+    for m in $conns; do
+        case "$m" in "$LAPTOP") continue ;; esac
+        xrandr --output "$m" --auto --right-of "$LAPTOP" 2>/dev/null || true
+        X=$((X + 1))
+    done
+    xrandr --output "$LAPTOP" --auto --primary 2>/dev/null || true
+else
+    FIRST=$(echo "$conns" | head -n1)
+    xrandr --output "$FIRST" --auto --primary 2>/dev/null || true
+fi
+exit 0

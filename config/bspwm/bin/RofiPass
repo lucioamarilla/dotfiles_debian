@@ -1,0 +1,35 @@
+#!/bin/sh
+# =============================================================
+# RofiPass — gestor de passwords (gh0stzk RofiPass)
+# requiere el deb 'pass' y un GPG configurado.
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+PASS_DIR="$HOME/.password-store"
+
+if ! command -v pass >/dev/null 2>&1 || [ ! -d "$PASS_DIR" ]; then
+    dunstify -t 2500 "Pass" "Instalá y configur: sudo apt install pass + pass init"
+    exit 1
+fi
+
+# entrada: elegir pass-entry
+ENTRY=$(find "$PASS_DIR" -name '*.gpg' | \
+    sed "s|^$PASS_DIR/||; s|\.gpg$||" | \
+    rofi -dmenu -p "pass:" -theme "$T" 2>/dev/null)
+[ -z "$ENTRY" ] && exit 0
+
+mode=$(printf 'Copiar password\nCopiar usuario (user)\nVisualizar (tipo)\n' |
+    rofi -dmenu -p "$ENTRY" -theme "$T" 2>/dev/null)
+
+case "$mode" in
+    *password*) pass show -c -- "$ENTRY" 2>/dev/null ;;
+    *usuario*)  pass show "$ENTRY" | grep -m1 '^user' | cut -d: -f2 | xclip -selection clipboard ;;
+    *Visualizar*)
+        # terminal para elegir entrada del secret
+        NODE=$(bspc query -N -n focused 2>/dev/null)
+        alacritty -e sh -c "pass show -c --; echo; read -n1 -r" &
+        ;;
+esac
+
+# Congela el primer clip (xclip byte)
+# usamos xclip único: pass --clip ya maneja 45s timeout.

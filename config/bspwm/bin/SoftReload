@@ -1,0 +1,26 @@
+#!/bin/sh
+# =============================================================
+# SoftReload — recarga entorno (JaKoolit Refresh port)
+# Recarga: sxhkd, polybar, dunst, picom, bspwm config (bspenv?) no (fast).
+# NO relanza la sesión (X). Ligero y estable.
+# =============================================================
+
+# sxhkd reload keybinds
+pkill -USR1 -x sxhkd 2>/dev/null
+
+# dunst config
+pkill -USR1 -x dunst 2>/dev/null || dunst &
+
+# picom: no hardcore restart (no flicker); solo si cambia config? sí.
+pkill -x picom 2>/dev/null
+sleep 0.3
+picom --config "$HOME/.config/picom/picom.conf" >/dev/null 2>&1 &
+
+# polybar
+"$HOME/.config/polybar/launch.sh" >/dev/null 2>&1 &
+
+# Reaplica tema + reglas
+ThemeSwitch --sync >/dev/null 2>&1
+"$HOME/.config/bspwm/bin/SetSysVars" >/dev/null 2>&1
+
+dunstify -t 1500 "SoftReload" "Entorno recargado com éxito"

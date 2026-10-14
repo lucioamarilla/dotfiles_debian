@@ -1,0 +1,87 @@
+# =============================================================
+#  alacritty 0.15 (TOML) — dotfiles Debian
+#  Tema Tokyo Night. Lígero: sin ligaduras, cursor estático.
+# =============================================================
+
+[general]
+live_config_reload = true
+
+[terminal]
+shell = "/usr/bin/zsh"
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+padding = { x = 8, y = 6 }
+decorations = "none"
+startup_mode = "Windowed"
+opacity = 1.0
+dynamic_title = true
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[font]
+normal = { family = "JetBrains Mono", style = "Regular" }
+bold = { family = "JetBrains Mono", style = "Bold" }
+italic = { family = "JetBrains Mono", style = "Italic" }
+size = 10.5
+offset = { x = 0, y = 1 }
+glyph_offset = { x = 0, y = 0 }
+
+[cursor]
+style = { shape = "Block", blinking = "Off" }
+
+[keyboard]
+# Compatibilidad portapapeles y scroll tmux-like
+bindings = [
+  { key = "V", mods = "Control|Shift", action = "Paste" },
+  { key = "C", mods = "Control|Shift", action = "Copy" },
+  { key = "Plus", mods = "Control", action = "IncreaseFontSize" },
+  { key = "Minus", mods = "Control", action = "DecreaseFontSize" },
+  { key = "Key0", mods = "Control", action = "ResetFontSize" },
+  { key = "F", mods = "Super", action = "ToggleFullscreen" },
+]
+
+[mouse]
+hide_when_typing = true
+
+[selection]
+save_to_clipboard = true
+
+# ── Paleta Tokyo Night ─────────────────────────────────────────
+[colors.primary]
+background = "0x1a1b26"
+foreground = "0xc0caf5"
+bright_foreground = "0xa9b1d6"
+dim_foreground = "0x565f89"
+
+[colors.cursor]
+text = "0x1a1b26"
+cursor = "0xc0caf5"
+
+[colors.selection]
+text = "0xc0caf5"
+background = "0x33467c"
+
+[colors.normal]
+black   = "0x32344a"
+red     = "0xf7768e"
+green   = "0x9ece6a"
+yellow  = "0xe0af68"
+blue    = "0x7aa2f7"
+magenta = "0xbb9af7"
+cyan    = "0x7dcfff"
+white   = "0xa9b1d6"
+
+[colors.bright]
+black   = "0x565f89"
+red     = "0xff7a93"
+green   = "0xb9f27c"
+yellow  = "0xff9e64"
+blue    = "0x7da6ff"
+magenta = "0xbb9af7"
+cyan    = "0x0db9d7"
+white   = "0xc0caf5"

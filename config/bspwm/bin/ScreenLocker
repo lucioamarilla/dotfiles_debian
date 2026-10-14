@@ -1,0 +1,35 @@
+#!/bin/sh
+# =============================================================
+# ScreenLocker — port simplificado y estable (i3lock en Debian)
+# 1. screenshot del desktop + blur (imagemagick)
+# 2. i3lock con la imagen (reloj si versión lo soporta)
+# apt: i3lock, maim, imagemagick
+# =============================================================
+
+IMG="/tmp/i3lock-bg.jpg"
+
+# keymap: guardar layout y restaurar tras unlock (port gh0stzk)
+LAY_FILE="/tmp/locker-keymap"
+setxkbmap -query | awk '/layout:/ {print $2}' > "$LAY_FILE" 2>/dev/null
+[ -s "$LAY_FILE" ] || echo "es" > "$LAY_FILE"
+
+# Fondo: screenshot con blur
+maim -d 0.3 -u "$IMG" 2>/dev/null || cp "$HOME/.config/bspwm/config/assets/lock-fallback.jpg" "$IMG" 2>/dev/null
+magick "$IMG" -blur 5x4 -resize 100% "$IMG" 2>/dev/null || \
+    convert "$IMG" -blur 5x4 "$IMG" 2>/dev/null
+
+# i3lock: opciones conservadoras (compatibles con i3lock 2.13 de trixie)
+if i3lock --version 2>/dev/null | grep -q "2\.1[4-9]\|2\.2"; then
+    i3lock -n -t -i "$IMG" -e --force-clock \
+        --time-str="%H:%M" --date-str="%a, %d %b" \
+        --pass-media-keys --pass-volume-keys
+else
+    i3lock -n -t -i "$IMG" -e -f \
+        --pass-media-keys --pass-volume-keys
+fi
+
+# al desbloquear: restaurar layout y limpiar
+prev=$(cat "$LAY_FILE" 2>/dev/null)
+rm -f "$LAY_FILE" "$IMG"
+[ -n "$prev" ] && [ "$prev" != "$(setxkbmap -query | awk '/layout:/ {print $2}')" ] && \
+    setxkbmap -layout "$prev" 2>/dev/null

@@ -1,0 +1,375 @@
+# =============================================================
+#  sxhkdrc — Dotfiles Debian (BSPWM + X11)
+#
+#  Keybinds fusionados:
+#    • JaKoolit (Ubuntu-Hyprland)  → mismos comandos y combos
+#    • gh0stzk  (BSPWM)            → utilidades X11
+#    • Extras propios (updates, clima, grabadora, notas, etc.)
+#
+#  Recargá con: super + Escape
+#  Cheatsheet:  Alt + F1
+# =============================================================
+
+# ══════════════════════════════════════════════════════════════
+#  TERMINALES
+# ══════════════════════════════════════════════════════════════
+
+# Terminal (JaKoolit: super+Return)
+super + Return
+    Term --normal
+
+# Terminal flotante / dropdown (JaKoolit: super+Shift+Return)
+super + shift + Return
+    Term --floating
+
+# Toggle scratchpad: terminal flotante oculta (gh0stzk)
+super + alt + Return
+    ScratchPad --term
+
+# Selector de terminal (alacritty/kitty) (gh0stzk: super+alt+t)
+super + alt + t
+    Term --selector
+
+# Notas rápidas: nvim en scratchpad (extra)
+super + alt + o
+    ScratchPad --notes
+
+# ══════════════════════════════════════════════════════════════
+#  LANZADORES Y MENÚS ROFI
+# ══════════════════════════════════════════════════════════════
+
+# App launcher (JaKoolit: super+D)
+super + d
+    RofiLauncher
+
+# App launcher alias con gh0stzk
+super + @space
+    RofiLauncher
+
+# Selector de tema dark/light (gh0stzk: alt+space)
+alt + @space
+    ThemeSwitch --menu
+
+# Power menu (JaKoolit: ctrl+alt+P)
+ctrl + alt + p
+    PowerMenu
+
+# Búsqueda Google en rofi (JaKoolit: super+S)
+super + s
+    RofiSearch
+
+# Calculadora qalc con preview (JaKoolit: super+alt+C)
+super + alt + c
+    RofiCalc
+
+# Emoji picker (JaKoolit: super+alt+E)
+super + alt + e
+    Rofimoji
+
+# Clipboard manager, backend rofi
+super + alt + v
+    ClipMenu
+
+# Network manager vía nmcli/rofi
+super + alt + n
+    NetMenu
+
+# Bluetooth manager
+super + alt + b
+    BlueMenu
+
+# Panel de notificaciones dunst (JaKoolit: super+Shift+N)
+super + shift + n
+    DunstPanel
+
+# Updates rofi applet (extra)
+super + alt + u
+    Updates --menu
+
+# Wallpaper selector (JaKoolit: super+W)
+super + w
+    WallSelect
+
+# Selector de layout de teclado (gh0stzk: super+alt+k)
+super + alt + k
+    KeyboardLayout
+
+# Gestor de contraseñas pass (gh0stzk: super+alt+x)
+super + alt + x
+    RofiPass
+
+# Configuración de monitores (gh0stzk: super+alt+d)
+super + alt + d
+    MonitorSetup
+
+# Cheatsheet de keybinds
+alt + F1
+    Help
+
+# ══════════════════════════════════════════════════════════════
+#  CAPTURAS DE PANTALLA
+# ══════════════════════════════════════════════════════════════
+
+# Menú de captura (gh0stzk: super+Print / super+alt+s)
+super + Print
+    ScreenShoTer
+
+# Captura de pantalla completa con rofi
+super + alt + s
+    ScreenShoTer
+
+# Captura de un área al portapapeles (JaKoolit: super+Shift+Print area)
+super + shift + Print
+    maim -s | xclip -selection clipboard -t image/png
+
+# Captura de la ventana activa (JaKoolit: alt+Print)
+alt + Print
+    maim -i $(xdotool getactivewindow) | xclip -selection clipboard -t image/png
+
+# Captura inmediata a archivo ~
+Print
+    maim ~/Imágenes/ScreenShots/screenshot-$(date +%s).png
+
+# Scrensot con anotaciones (JaKoolit: super+Shift+S swappy)
+super + shift + s
+    flameshot gui
+
+# ══════════════════════════════════════════════════════════════
+#  VENTANAS — ESTADOS
+# ══════════════════════════════════════════════════════════════
+
+# Cerrar ventana (JaKoolit: super+Q — gh0stzk: super+X) [alias]
+super + {q,x}
+    bspc node -c
+
+# Matar proceso (JaKoolit: super+Shift+Q — gh0stzk: super+Shift+X) [alias]
+super + shift + {q,x}
+    bspc node -k
+
+# Toggle fullscreen (JaKoolit: super+Shift+F)
+super + f
+    bspc node -t '~fullscreen'
+
+# Toggle flotante (JaKoolit: super+Space)
+super + space
+    bspc node -t '~floating'
+
+# Pseudotiled (JaKoolit: super+P dwindle pseudo)
+super + shift + p
+    bspc node -t '~pseudo_tiled'
+
+# Todas las ventanas del escritorio flotantes (JaKoolit: super+alt+Space)
+super + alt + space
+    WinFloat --desktop
+
+# Estado tiled explícito (gh0stzk: super+Shift+T)
+super + t
+    bspc node -t '~tiled'
+
+# ══════════════════════════════════════════════════════════════
+#  VENTANAS — LAYOUT (port Master/Dwindle de JaKoolit)
+# ══════════════════════════════════════════════════════════════
+
+# Cambiar layout tiled <-> monocle (≈ JaKoolit super+alt+L layout switch)
+super + alt + l
+    bspc desktop -l next
+
+# Ratio de split (≈ JaKoolit super+M splitratio)
+super + m
+    RatioToggle
+
+# Rotar árbol 90° (gh0stzk)
+super + slash
+    bspc node @parent -R 90
+
+# Balancear tamaños equitativamente (gh0stzk: super+equal)
+super + equal
+    bspc node @/ -B
+
+# ══════════════════════════════════════════════════════════════
+#  VENTANAS — FOCUS / MOVER / SWAP / RESIZE  (JaKoolit idéntico)
+# ══════════════════════════════════════════════════════════════
+
+# Focus (JaKoolit: super+arrows)
+super + {Left,Down,Up,Right}
+    bspc node -f {west,south,north,east}.!sticky.!hidden.local
+
+# Swap entre ventanas vecinas (JaKoolit: super+Alt+arrows ó Ctrl+arrows)
+super + alt + {Left,Down,Up,Right}
+    bspc node -s {west,south,north,east}.local
+
+super + ctrl + {Left,Down,Up,Right}
+    bspc node -s {west,south,north,east}.local
+
+# Resize (JaKoolit: super+Shift+arrows)
+super + shift + {Left,Down,Up,Right}
+    bspc node -z {right -40 0,bottom 0 40,bottom 0 -40,right 40 0}
+
+# Window switcher (Alt+Tab, ambos repos)
+alt + Tab
+    RofiWindows
+
+# Focus al último nodo/desktop (gh0stzk)
+super + {semicolon,apostrophe}
+    bspc node -f last
+super + shift + {semicolon,apostrophe}
+    bspc desktop -f last
+
+# ══════════════════════════════════════════════════════════════
+#  WORKSPACES (JaKoolit idéntico)
+# ══════════════════════════════════════════════════════════════
+
+# Ir a workspace 1-0 (código de teclas para cualquier layout)
+super + {1-9,0}
+    bspc desktop -f '^{1-9,10}'
+
+# Mover ventana y seguir (JaKoolit: super+Shift+NUM)
+super + shift + {1-9,0}
+    bspc node -d '^{1-9,10}' --follow
+
+# Mover ventana sin seguir (JaKoolit: super+Ctrl+NUM)
+super + ctrl + {1-9,0}
+    bspc node -d '^{1-9,10}'
+
+# Desktop siguiente/anterior (JaKoolit: super+Tab / super+Shift+Tab)
+super + {Tab,shift + Tab}
+    bspc desktop -f {next,prev}
+
+# Scroll de desktops (JaKoolit: super+rueda)
+super + button{4,5}
+    bspc desktop -f {prev,next}
+
+# Ventana oculta "special workspace" (JaKoolit super+U ≈)
+alt + h
+    HideNode --hide
+
+# Restaurar ventana oculta vía rofi
+ctrl + alt + h
+    HideNode --menu
+
+# ══════════════════════════════════════════════════════════════
+#  APPS BASE
+# ══════════════════════════════════════════════════════════════
+
+# File manager (JaKoolit: super+E)
+super + e
+    Term --files
+
+# Navegador (gh0stzk: super+B)
+super + b
+    OpenApps --browser
+
+# Yazi / ranger file explorer (extra)
+super + y
+    Term --yazi
+
+# Neovim (extra)
+super + v
+    Term --nvim
+
+# Editor GUI (geany) (extra)
+super + n
+    OpenApps --editor
+
+# Control de sonido pavucontrol (gh0stzk: super+P)
+super + p
+    pavucontrol
+
+# Reproductor de música ncmpcpp (extra; si hay mpd)
+super + shift + m
+    Term --music
+
+# ══════════════════════════════════════════════════════════════
+#  SISTEMA
+# ══════════════════════════════════════════════════════════════
+
+# Lock screen (JaKoolit: ctrl+alt+L — gh0stzk: ctrl+super+alt+L)
+ctrl + alt + l
+    ScreenLocker
+
+# Salir de la sesión (JaKoolit: ctrl+alt+Delete — gh0stzk: ctrl+super+alt+Q)
+ctrl + alt + Delete
+    bspc quit
+
+ctrl + super + alt + q
+    bspc quit
+
+# Recargar keybinds sxhkd
+super + Escape
+    pkill -USR1 -x sxhkd ; dunstify -u low -t 1500 'sxhkd' 'Keybinds recargados'
+
+# Recargar entorno (JaKoolit: super+alt+R — GH0STZK: super+alt+R reinicia bspwm)
+super + alt + r
+    SoftReload
+
+# Toggle barra polybar (JaKoolit: ctrl+alt+B; gh0stzk: super+alt+h/u)
+ctrl + alt + b
+    HideBar --toggle
+
+super + alt + h
+    HideBar --hide
+
+super + alt + u
+    HideBar --unhide
+
+# Apagar / reiniciar (gh0stzk: ctrl+super+alt+P / +R)
+ctrl + super + alt + p
+    systemctl poweroff
+ctrl + super + alt + r
+    systemctl reboot
+
+# Transparencia de ventana activa (gh0stzk: ctrl+alt+plus/minus/t)
+ctrl + alt + {plus,minus,t}
+    picom-trans -c {+3,-3,-o} 2>/dev/null || picom-trans -c -d
+
+# Toggle autotiling: split ratio livianas (extra)
+super + alt + m
+    bspc node -g ratio {0.55 0.45} 2>/dev/null || bspc node -g ratio 0.5
+
+# ══════════════════════════════════════════════════════════════
+#  TECLAS DE HARDWARE XF86 (ThinkPad)
+# ══════════════════════════════════════════════════════════════
+
+# Volumen
+XF86Audio{RaiseVolume,LowerVolume,Mute}
+    Volume {--inc,--dec,--toggle}
+XF86AudioMicMute
+    Volume --mic
+
+# Fallback volumen sin Fn (JaKoolit-style remaps)
+super + alt {minus,plus,equal}
+    Volume {--dec,--inc,--toggle}
+
+# Brillo (ThinkPad)
+XF86MonBrightness{Up,Down}
+    Brightness {up,down}
+
+# Multimedio (playerctl — JaKoolit MediaCtrl idéntico)
+XF86Audio{Play,Pause,Stop}
+    MediaControl {--toggle,--toggle,--stop}
+XF86Audio{Prev,Next}
+    MediaControl {--previous,--next}
+
+# Modo avión (tecla WIFI del ThinkPad)
+XF86{WLAN,RFKill}
+    NetMenu --airplane
+
+# Sleep
+XF86Sleep
+    systemctl suspend
+
+# ══════════════════════════════════════════════════════════════
+#  EXTRAS
+# ══════════════════════════════════════════════════════════════
+
+# Grabadora de pantalla ffmpeg (extra)
+super + alt + g
+    ScreenRecorder
+
+# Clima wttr.in en rofi (extra)
+super + alt + y
+    WeatherRofi
+
+# Body amount toggle (extra): mute del micrófono sin tecla Fn
+super + alt + i
+    Volume --mic

@@ -1,0 +1,10 @@
+#!/bin/sh
+# =============================================================
+# ClipMenu — clipboard manager [rofi + clipmenu (port))]
+# apt: xclip, clipmenu
+# Config clipmenu CM_LAUNCHER=rofi via: install.sh exporta
+#   CM_LAUNCHER=rofi CM_DEBUG=0 en el daemon clipmenud
+# =============================================================
+
+# clipmenu binary maneja todo (integrado con rofi)
+exec clipmenu "$@"

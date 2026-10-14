@@ -1,0 +1,40 @@
+#!/bin/sh
+# =============================================================
+# SetSysVars — detecta red/batería/adapter para polybar
+# Escribe ~/.config/bspwm/config/system.ini (formato ini)
+# =============================================================
+
+CFG_DIR="$HOME/.config/bspwm/config"
+mkdir -p "$CFG_DIR" 2>/dev/null || true
+CFG="$CFG_DIR/system.ini"
+
+fan=0
+while [ $fan -lt 20 ] && [ -z "$NETIF" ]; do
+    NETIF=$(ip route show default 2>/dev/null | awk '{print $5; exit}')
+    fan=$((fan + 1))
+    [ -z "$NETIF" ] && sleep 0.25
+done
+
+detect() {
+    case "$1" in
+        bat) for f in /sys/class/power_supply/*BAT*; do [ -e "$f" ] && echo "${f##*/}" && return; done ;;
+        ac)  for f in /sys/class/power_supply/*A[C,D]*; do [ -e "$f" ] && echo "${f##*/}" && return; done ;;
+    esac
+    echo ""
+}
+
+BAT=$(detect bat)
+AC=$(detect ac)
+GW=$(ip route 2>/dev/null | awk '/default/ {print $3; exit}')
+CPUV=$(awk -F'cpu ' '/^cpu / {for(i=2;i<=5;i++) s+=$i; print s}' /proc/stat)
+
+{
+    echo "sys_network_interface = ${NETIF:-unknown}"
+    echo "sys_gateway = ${GW:-none}"
+    echo "sys_battery = ${BAT:-none}"
+    echo "sys_adapter = ${AC:-none}"
+    echo "sys_user = $USER"
+    echo "sys_laptop = $([ -n "$BAT" ] && echo true || echo false)"
+} > "$CFG.tmp" 2>/dev/null && mv "$CFG.tmp" "$CFG" 2>/dev/null
+
+echo "net=${NETIF}- bat=${BAT}- ac=${AC}"

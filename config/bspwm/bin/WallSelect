@@ -1,0 +1,30 @@
+#!/bin/sh
+# =============================================================
+# WallSelect — selector de wallpaper con rofi
+# Busca wallpapers en:
+#   ~/.config/bspwm/config/walls/   (dotfiles)
+#   ~/Imágenes/Wallpapers/          (usuario)
+# Aplica con feh --bg-fill y recuerda el último (nitrogen es pesado).
+# apt: feh, rofi
+# =============================================================
+
+WALLS1="$HOME/.config/bspwm/config/walls"
+WALLS2="$HOME/Imágenes/Wallpapers"
+STATE="$HOME/.config/bspwm/.wallpaper"
+_theme="$HOME/.config/rofi/themes/theme-active.rasi"
+
+files()
+{
+    for d in "$WALLS1" "$WALLS2"; do
+        [ -d "$d" ] && find "$d" -maxdepth 1 -type f \( \
+            -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \
+            -o -iname '*.webp' \) -print
+    done | sort -u
+}
+
+sel=$(files | rofi -dmenu -p "Wallpaper" -theme "$_theme" 2>/dev/null)
+[ -z "$sel" ] && exit 0
+
+feh --bg-fill "$sel"
+echo "$sel" > "$STATE"
+dunstify -t 1200 "Wallpaper" "$(basename "$sel")"

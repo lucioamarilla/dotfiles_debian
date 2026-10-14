@@ -1,0 +1,68 @@
+; =============================================================
+; dunstrc — notificaciones (dotfiles Debian)
+; Colores fijos dark (estables); ThemeSwitch refresca el daemon.
+; apt: dunst, libnotify-bin
+; =============================================================
+
+[global]
+    monitor = 0
+    follow = mouse
+    width = (0, 400)
+    height = 110
+    origin = top-right
+    offset = 8x40
+    gap = 8
+    notification_limit = 4
+    indicate_hidden = yes
+    transparency = 12
+    separator_color = frame
+    sort = yes
+    idle_threshold = 120
+    font = JetBrains Mono 10
+    line_height = 2
+    markup = full
+    format = "<b>%s</b>\n%b"
+    alignment = left
+    vertical_alignment = center
+    word_wrap = yes
+    ellipsize = middle
+    ignore_newline = no
+    stack_duplicates = true
+    hide_duplicate_count = false
+    show_indicators = yes
+    icon_position = left
+    max_icon_size = 40
+    sticky_history = yes
+    history_length = 24
+    dmenu = /usr/bin/rofi -dmenu -p dunst
+    browser = /usr/bin/xdg-open
+    always_run_script = true
+    title = Notificaciones
+    class = Dunst
+    corner_radius = 8
+    timeout = 0
+    mouse_left_click = close_current
+    mouse_middle_click = do_action, close_current
+    mouse_right_click = close_all
+
+[frame]
+    width = 1
+    color = "#7aa2f7"
+
+[urgency_low]
+    timeout = 6
+    background = "#1a1b26"
+    foreground = "#c0caf5"
+    highlight = "#7aa2f7"
+
+[urgency_normal]
+    timeout = 8
+    background = "#1a1b26"
+    foreground = "#c0caf5"
+    highlight = "#ff9e64"
+
+[urgency_critical]
+    timeout = 0
+    background = "#db4b4b"
+    foreground = "#16161e"
+    highlight = "#16161e"

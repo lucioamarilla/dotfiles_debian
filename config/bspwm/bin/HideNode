@@ -1,0 +1,31 @@
+#!/bin/sh
+# =============================================================
+# HideNode — "minimizar" ventanas: hidden state + rofi restore
+# (port gh0stzk HideNode; aprox as JaKoolit special workspace)
+# Uso: HideNode --hide | --menu
+# =============================================================
+
+case "$1" in
+    --hide)
+        NODE=$(bspc query -N -n focused 2>/dev/null)
+        [ -n "$NODE" ] && bspc node "$NODE" -g hidden=on
+        ;;
+    --menu|"")
+        hide_nodes=$(bspc query -N -n ".hidden" 2>/dev/null)
+        [ -z "$hide_nodes" ] && { dunstify -t 1500 "HideNode" "Nada oculto"; exit 0; }
+
+        T="$HOME/.config/rofi/themes/theme-active.rasi"
+        # lista N → título
+        MENU=$(printf '%s' "$hide_nodes" | while read -r n; do
+            title=$(xprop -id "$n" -notype WM_NAME 2>/dev/null | cut -d'=' -f2- | cut -d':' -f1)
+            printf '%s|%s\n' "$n" "$title"
+        done)
+
+        sel=$(printf '%s\n' "$MENU" | awk -F'|' '{print $2}' | \
+            rofi -dmenu -p "Ventanas ocultas" -theme "$T" 2>/dev/null)
+        [ -z "$sel" ] && exit 0
+
+        NODE=$(printf '%s\n' "$MENU" | awk -F'|' -v s="$sel" '$2 == s {print $1; exit}')
+        [ -n "$NODE" ] && bspc node "$NODE" -g hidden=off -f
+        ;;
+esac

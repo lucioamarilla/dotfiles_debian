@@ -1,0 +1,28 @@
+# Sincronizar files subidos grandes (wallpapers >5MB se rechazan en GitHub)
+*.mp4
+*.mkv
+*.webm
+*.iso
+
+# logs del install
+install-*.log
+
+# usuario / propias
+config/bspwm/config/.sys
+config/bspwm/config/system.ini
+config/bspwm/.theme
+config/bspwm/.terminal
+config/bspwm/.kb-layout
+config/bspwm/.wallpaper
+config/bspwm/.weathercity
+config/bspwm/config/.first_run_done
+config/bspwm/autostart.sh
+
+# clips a caché de polybar? No versionar cache generado
+*.bak
+/ventanas.log
+
+# secretos (por si archivos futuros)
+.ssh
+*.pem
+.env

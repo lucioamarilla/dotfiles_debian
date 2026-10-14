@@ -1,0 +1,19 @@
+#!/bin/sh
+# =============================================================
+# RatioToggle — toggle ratio de split (extra, port JaKoolit split)
+# Alterna 50% / 56% / 44% del nodo enfocado.
+# =============================================================
+
+R=$(bspc query -T -n focused 2>/dev/null | grep -o '"ratio":[0-9.]*' | cut -d: -f2)
+
+case 1 in
+    1)
+        case "$(printf '%.3f\n' "${R:-0.5}" | tr -d ' ')" in
+            0.500) B=0.56 ;;
+            0.560) B=0.44 ;;
+            *)     B=0.50 ;;
+        esac
+        ;;
+esac
+
+bspc node -g ratio="$B" 2>/dev/null || bspc node -g ratio 0.5

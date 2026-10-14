@@ -1,0 +1,44 @@
+#!/bin/sh
+# =============================================================
+# ScreenRecorder — graba el monitor activo con ffmpeg x11grab
+# Toggle: primera llamada arranca; segunda corta y notifica.
+# apt: ffmpeg, alsa-utils (arecord), xauth
+# =============================================================
+
+if [ ! -d "$HOME/Imágenes" ]; then
+    mkdir -p "$HOME/Imágenes"
+fi
+OUT_DIR="$HOME/Imágenes/ScreenRecordings"
+[ -d "$OUT_DIR" ] || mkdir -p "$OUT_DIR"
+PID_FILE="/tmp/dotfiles-screen-rec.pid"
+
+if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    kill -INT "$(cat "$PID_FILE")" 2>/dev/null
+    rm -f "$PID_FILE"
+    dunstify -t 2000 "Recording" "Grabación finalizada ✔"
+    exit 0
+fi
+
+# Geometría del monitor bajo el cursor  (W H X Y)
+MON_GEO=$(bspc query -T -m pointed 2>/dev/null)
+if [ -n "$MON_GEO" ]; then
+    if command -v jq >/dev/null 2>&1; then
+        RW=$(echo "$MON_GEO" | jq -r '.rectangle | "\(.width) \(.height) \(.x) \(.y)"')
+    else
+        RW=$(echo "$MON_GEO" | python3 -c 'import json,sys; r=json.load(sys.stdin)["rectangle"]; print(r["width"], r["height"], r["x"], r["y"])')
+    fi
+else
+    RW=$(xdpyinfo | awk '/dimensions:/ {print $2}' | awk -Fx '{print $1, $2, 0, 0}')
+fi
+set -- $RW
+
+FILE="$OUT_DIR/rec-$(date +%Y%m%d-%H%M%S).mp4"
+
+dunstify -t 1500 "Recording" "Grabando el monitor… (super+alt+G para cortar)"
+
+# grabar video (sin audio: mic hace noise; arg --mic-diff añade el audio)
+DISP="${DISPLAY:-:0}"
+ffmpeg -f x11grab -framerate 24 -video_size "$1x$2" -i "$DISP+$3,$4" \
+    -c:v libx264 -preset ultrafast -crf 23 -pix_fmt yuv420p \
+    "$FILE" 2>/dev/null &
+echo "$!" > "$PID_FILE"

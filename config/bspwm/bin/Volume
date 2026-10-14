@@ -1,0 +1,49 @@
+#!/bin/sh
+# =============================================================
+# Volume — volumen con pactl (pulso/PipeWire), sin deps Arch
+# Uso: Volume --inc | --dec | --toggle | --mic | --get
+# =============================================================
+
+SINK="@DEFAULT_SINK@"
+STEP=5
+
+notify() { dunstify -u low -r 5555 -t 1200 "$@"; }
+
+get_vol() { pactl get-sink-volume "$SINK" 2>/dev/null | awk '{print $5}' | head -n1; }
+get_mute() { pactl get-sink-mute "$SINK" 2>/dev/null | awk '{print $2}'; }
+
+show() {
+    V=$(get_vol); M=$(get_mute)
+    if [ "$M" = "yes" ]; then
+        notify "Volumen  MUTE"
+    else
+        notify "Volumen  ${V:-0}"
+    fi
+}
+
+change() {
+    pactl set-sink-mute "$SINK" 0
+    pactl set-sink-volume "$SINK" "$1" 2>/dev/null
+    show
+}
+
+case "$1" in
+    --inc)      change "+${STEP}%" ;;
+    --dec)      change "-${STEP}%" ;;
+    --toggle|-t)
+        pactl set-sink-mute "$SINK" toggle
+        show ;;
+    --mic|-m)
+        pactl set-source-mute "@DEFAULT_SOURCE@" toggle
+        if [ "$(pactl get-source-mute @DEFAULT_SOURCE@ | awk '{print $2}')" = "yes" ]; then
+            notify "Micrófono  MUTE"
+        else
+            notify "Micrófono  activo"
+        fi ;;
+    --get)
+        M=$(get_mute)
+        [ "$M" = "yes" ] && echo muted || echo "${V:-$(get_vol)}" ;;
+    *)
+        M=$(get_mute); V=$(get_vol)
+        [ "$M" = "yes" ] && echo muted || echo "${V:-0}%" ;;
+esac

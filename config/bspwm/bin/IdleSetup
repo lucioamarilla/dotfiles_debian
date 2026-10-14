@@ -1,0 +1,40 @@
+#!/bin/sh
+# =============================================================
+# IdleSetup — bloqueo automático y DPMS (ThinkPad-friendly)
+# xautolock: 10 min → ScreenLocker ; 30 min → suspend
+# Uso: IdleSetup [inicio] | IdleSetup --toggle | --off | --status
+# apt: xautolock, x11-xserver-utils
+# =============================================================
+
+toggle() {
+    if pidof -x xautolock >/dev/null 2>&1; then
+        xautolock -disable
+        dunstify -u normal -t 2000 "IDLE" "Autolock DESACTIVADO"
+    else
+        xautolock -enable
+        dunstify -u normal -t 2000 "IDLE" "Autolock ACTIVADO"
+    fi
+}
+
+case "$1" in
+    --toggle|-t) pkill -USR1 xautolock 2>/dev/null; toggle; exit 0 ;;
+    --status|-s)
+        pidof -x xautolock >/dev/null 2>&1 && echo on || echo off
+        exit 0 ;;
+    --off) xautolock -disable 2>/dev/null; xset -dpms 2>/dev/null; exit 0 ;;
+esac
+
+# Ya corriendo → re-armar
+if pidof -x xautolock >/dev/null 2>&1; then
+    pkill -USR1 xautolock 2>/dev/null
+    exit 0
+fi
+
+xautolock -time 10 \
+    -locker "ScreenLocker" \
+    -detectsleep &
+
+# Pantalla apagada (DPMS): standby/apagado/suspend en segundos
+xset s 900 60
+xset dpms 1800 2400 3000
+exit 0

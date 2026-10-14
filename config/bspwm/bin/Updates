@@ -1,0 +1,41 @@
+#!/bin/sh
+# =============================================================
+# Updates — apt / apt check + rofi (extra propio)
+# Uso: Updates --menu  |  Updates --notify (para cron/polybar)
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+
+count() {
+    apt-get -q update -o Quiet=2 >/dev/null 2>&1 &
+    apt list --upgradable 2>/dev/null | wc -l
+}
+
+menu() {
+    pkgs=$(apt list --upgradable 2>/dev/null | sed 1d | awk '{print $1}' | sort | rofi -dmenu -i -p "Actualizables ($1)" -theme "$T" 2>/dev/null)
+    [ -z "$pkgs" ] && return 0
+    # terminal con apt upgrade interactivo
+    alacritty -e sh -c "sudo apt upgrade -y ; echo [Enter para cerrar] ; read x" &
+    dunstify -t 1500 "Apt" "Udgrade lanzado"
+}
+
+notify_mode() {
+    n=$(count)
+    dunstify -t 3500 "apt" "$n paquetes actualizables" -r 500
+    exit 0
+}
+
+case "$1" in
+    --notify)
+        n=$(count)
+        [ "$n" -gt 0 ] 2>/dev/null && dunstify -t 3000 "apt" "$n paquetes para actualizar" -r 566
+        ;;
+    --count|"") count ;;
+    --menu)
+        n=$(apt list --upgradable 2>/dev/null | wc -l)
+        n=$((n - 1))
+        [ "$n" -le 0 ] && rofi -e "Sistema al día ✔" -theme "$T" 2>/dev/null && exit 0
+        menu "$n"
+        ;;
+    *) count ;;
+esac

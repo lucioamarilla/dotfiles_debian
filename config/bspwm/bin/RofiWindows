@@ -1,0 +1,13 @@
+#!/bin/sh
+# =============================================================
+# RofiWindows — window switcher, va entre ventanas con Alt+Tab
+# (port del window switcher de gh0stzk: acepta Alt+Tab)
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+exec rofi -show window \
+    -theme "$T" \
+    -kb-accept-entry "!Alt-Tab,Return" \
+    -kb-element-next "Alt-Tab" \
+    -kb-element-prev "!Alt-Shift-Tab,Alt+ISO_Left_Tab" 2>/dev/null || \
+    rofi -show window -theme "$T" -kb-accept-entry "!Alt-Tab,Return" -kb-element-next "Alt-Tab"

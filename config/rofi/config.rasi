@@ -1,0 +1,28 @@
+/* =============================================================
+   rofi config — dotfiles Debian
+   tema activo via symlink ~/.config/rofi/themes/theme-active.rasi
+   (ThemeSwitch --set dark|light)
+   ============================================================= */
+configuration {
+    modi: "drun,run,window,windowcd";
+    font: "JetBrains Mono 10";
+    show-icons: true;
+    icon-theme: "Papirus";
+    display-drun: "  Apps";
+    display-run: "  Ejecutar";
+    display-window: "  Ventanas";
+    drun-display-format: "{name}   [{generic_name}]";
+    window-format: "{w}  {t} ({i})";
+    lines: 9;
+    columns: 1;
+    cycle: true;
+    fuzzy: true;
+    case-sensitive: false;
+    sorting-method: "levenshtein";
+    kb-primary-paste: "Control+V,Super+V";
+    kb-secondary-paste: "Control+v,Super+v";
+    kb-remove-to-eol: "Control+k";
+    terminal: "alacritty";
+}
+
+@theme "theme-active"

@@ -1,0 +1,16 @@
+#!/bin/sh
+# =============================================================
+# WeatherRofi — clima via wttr.in (extra, sin daemon)
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+# Editá esta variable o usá $HOME/.config/bspwm/.weathercity
+[ -f "$HOME/.config/bspwm/.weathercity" ] && \
+    CITY=$(cat "$HOME/.config/bspwm/.weathercity") || CITY="${WEATHER_CITY:-Buenos+Aires}"
+
+W=$(curl -s --max-time 4 "https://wttr.in/$CITY?format=%c+%t+%h+%w%0A%t+%p+%P" 2>/dev/null)
+[ -z "$W" ] && W="Sin datos (sin internet)"
+
+rofi -e "$W" -theme "$T" 2>/dev/null
+# Click derecho = reintentar full report:
+# super+alt+y otra vez

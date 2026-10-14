@@ -1,0 +1,20 @@
+#!/bin/sh
+# =============================================================
+# HideBar — toggle barra polybar (port de JaKoolit ctrl+alt+B)
+# Uso: HideBar --hide | --unhide | --toggle
+# =============================================================
+
+if ! command -v polybar-msg >/dev/null 2>&1; then
+    dunstify -t 1500 "Bar" "polybar-msg no disponible"
+    exit 1
+fi
+
+case "$1" in
+    --hide)   polybar-msg cmd hide  >/dev/null 2>&1 ;;
+    --unhide) polybar-msg cmd unhide >/dev/null 2>&1 ;;
+    --toggle|"")
+        HIDDEN=$(polybar-msg hook main-hidden-get 1 2>/dev/null)
+        # fallback simple: pgrep no determina estado visible; alternar
+        polybar-msg cmd toggle >/dev/null 2>&1
+        ;;
+esac

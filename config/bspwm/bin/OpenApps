@@ -1,0 +1,24 @@
+#!/bin/sh
+# =============================================================
+# OpenApps — dispatcher de apps (port del OpenApps de gh0stzk)
+# Respeta variables de usuario: $BROWSER/$FILEMANAGER/$EDITOR
+# =============================================================
+
+case "$1" in
+    --browser)     exec "${BROWSER:-firefox}" ;;
+    --files)       exec "${FILEMANAGER:-thunar}" ;;
+    --editor)      exec "${EDITOR:-geany}" ;;
+    --sound)       exec pavucontrol ;;
+    --net)         exec nm-connection-editor 2>/dev/null || NetMenu ;;
+    --bluetooth)   exec blueman-manager 2>/dev/null || BlueMenu ;;
+    --power)       exec PowerMenu ;;
+    --screenshot)  exec ScreenShoTer ;;
+    --networkmenu) exec NetMenu ;;
+    --keyboard)    exec KeyboardLayout ;;
+    --pass)        exec RofiPass ;;
+    --clipboard)   exec ClipMenu ;;
+    --help)
+        echo "OpenApps: --browser --files --editor --sound --net --bluetooth --power --screenshot --networkmenu --keyboard --pass --clipboard"
+        ;;
+    *) exec "${BROWSER:-firefox}" ;;
+esac

@@ -1,0 +1,11 @@
+#!/bin/sh
+# =============================================================
+# Rofimoji — emoji picker (JaKoolit RofiEmoji, port X11)
+# wrapper de 'rofimoji' (deb: rofimoji) o grela.
+# =============================================================
+
+if command -v rofimoji >/dev/null 2>&1; then
+    exec rofimoji --action copy --files "math,symbols,emoticons,geometric-shapes" "$@"
+else
+    dunstify -t 2000 "Emoji" "Instalá: sudo apt install rofimoji"
+fi

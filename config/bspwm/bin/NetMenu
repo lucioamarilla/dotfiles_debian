@@ -1,0 +1,85 @@
+#!/bin/sh
+# =============================================================
+# NetMenu — manager de red rofi (nmcli)
+# apt: network-manager, rofi, rfkill
+# =============================================================
+
+T="$HOME/.config/rofi/themes/theme-active.rasi"
+menu() { printf '%s\n' "$@" | rofi -dmenu -p "$2" -theme "$T" 2>/dev/null; }
+
+info() {
+    ip4=$(ip -4 route show default | awk '{print $7; exit}')
+    gw=$(ip route | awk '/default/ {print $3; exit}')
+    pub=$(curl -4 -s --max-time 3 ipinfo.io/ip 2>/dev/null)
+    rofi -e "IP local:     ${ip4:-n/a}
+Gateway:      ${gw:-n/a}
+IP pública:   ${pub:-n/a}" -theme "$T" 2>/dev/null
+}
+
+wifi_list() {
+    nmcli -t --fields SSID,SIGNAL,SECURITY dev wifi list 2>/dev/null \
+        | grep -v '^--' | sort -u -t: -k2 -nr | awk -F: '!seen[$2]++ {print $2 " [" $1 "%] " $3}'
+}
+
+# Modo avión (XF86WLAN)
+if [ "$1" = "--airplane" ] || [ "$1" = "avion" ]; then
+    if [ "$(nmcli radio wifi)" = "enabled" ]; then
+        nmcli radio wifi off
+        command -v rfkill >/dev/null && rfkill block bluetooth 2>/dev/null
+        dunstify -t 1500 "Modo avión ON"
+    else
+        nmcli radio wifi on
+        command -v rfkill >/dev/null && rfkill unblock all 2>/dev/null
+        dunstify -t 1500 "Modo avión OFF"
+    fi
+    exit 0
+fi
+
+sel=$(menu "-- Escanear/Conectar WiFi
+-- Desconectar
+-- Toggle Wi-Fi
+-- VPN
+-- Info red
+-- Editar conexiones" "RED")
+[ -z "$sel" ] && exit 0
+
+case "$sel" in
+    *Escanear*)
+        lists=$(wifi_list)
+        [ -z "$lists" ] && lists="«Rescanear»"
+        net=$(printf '%s\n%s\n' "$lists" "«Rescanear»" | menu "" "WiFi SSID")
+        if [ -z "$net" ]; then
+            exit 0
+        elif [ "$net" = "«Rescanear»" ]; then
+            exec NetMenu
+        fi
+        ssid=$(echo "$net" | awk '{print $1}')
+        # pedir password SOLO si la red está protegida
+        if echo "$net" | grep -q "WPA\|WEP\|802"; then
+            pass=$(menu "" "Password")
+            [ -z "$pass" ] && exit 0
+            nmcli device wifi connect "$ssid" password "$pass" >/dev/null 2>&1
+        else
+            nmcli device wifi connect "$ssid" >/dev/null 2>&1
+        fi
+        if [ $? -eq 0 ]; then
+            dunstify -t 1500 "Net" "Conectado a $ssid"
+        else
+            dunstify -t 2500 -u critical "Net" "No se pudo conectar a $ssid"
+        fi
+        ;;
+    *Desconectar*)
+        conn=$(nmcli -t --fields NAME,TYPE connection show --active 2>/dev/null \
+            | awk -F: '$2=="802-11-wireless" || $2=="ethernet" {print $1}')
+        [ -n "$conn" ] && nmcli connection down "$conn" >/dev/null 2>&1
+        ;;
+    *Toggle\ Wi-Fi*)
+        exec "$0" --airplane
+        ;;
+    *VPN*)
+        vpn=$(nmcli -t --fields NAME,TYPE connection show 2>/dev/null | awk -F: '$2 ~ /vpn|wireguard/ {print $1}' | menu "" "VPN")
+        [ -n "$vpn" ] && nmcli connection up "$vpn" >/dev/null 2>&1
+        ;;
+    *Info*)    info ;;
+    *Editar*)  exec nm-connection-editor 2>/dev/null ;;
+esac

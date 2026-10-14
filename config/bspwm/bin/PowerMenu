@@ -1,0 +1,30 @@
+#!/bin/sh
+# =============================================================
+# PowerMenu — port del PowerMenu de gh0stzk (rofi)
+# Opciones: Lock / Salir / Reboot / Poweroff / Suspend
+# =============================================================
+
+_theme="$HOME/.config/rofi/themes/theme-active.rasi"
+
+_options="⏻|Apagar
+ |Reiniciar
+ |Suspender
+ 󰍁|Bloquear
+ |Cerrar sesión"
+
+sel=$(printf '%s\n' "$_options" | cut -d'|' -f1 |
+    rofi -dmenu -p "Goodbye ${USER}" \
+        -mesg "Uptime: $(uptime -p | sed -e 's/up //' 2>/dev/null)" \
+        -theme "$_theme" 2>/dev/null)
+
+[ -z "$sel" ] && exit 0
+
+action=$(printf '%s\n' "$_options" | awk -F'|' -v s="$sel" '$1 == s {print $2}')
+
+case "$action" in
+    "Apagar")        systemctl poweroff ;;
+    "Reiniciar")     systemctl reboot ;;
+    "Suspender")     systemctl suspend ;;
+    "Bloquear")      ScreenLocker ;;
+    "Cerrar sesión") bspc quit ;;
+esac
