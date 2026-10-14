@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 import os, sys, json, shutil, cloudscraper
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor

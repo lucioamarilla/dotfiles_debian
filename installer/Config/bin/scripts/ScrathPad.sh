@@ -72,14 +72,21 @@ fi
 
 # Monitor focus (opcional): solo si realmente lo usas
 # Comenta este bloque si no trabajas con múltiples monitores
-bspc subscribe monitor_focus | while read -r _; do
-    get_monitor_geometry
-    calculate_position
-    WID=$(get_scratchpad_id)
-    [ -z "$WID" ] && continue
-    STATE=$(bspc query -T -n "$WID" | jq -r '.client.state')
-    [ "$STATE" = "floating" ] || continue
-    bspc node "$WID" -m focused
-    xdo move   -x "$X_POS" -y "$Y_POS" "$WID"
-    xdo resize -w "$WIDTH"  -h "$HEIGHT"  "$WID"
-done &
+# re-subscribir solo si no corre YA (evita leak: cada alt+s acumulaba un suscriptor)
+SUB_PID_FILE="/tmp/.scratchpad-sub.pid"
+if [ -s "$SUB_PID_FILE" ] && kill -0 "$(cat $SUB_PID_FILE)" 2>/dev/null; then
+    :
+else
+    bspc subscribe monitor_focus | while read -r _; do
+        get_monitor_geometry
+        calculate_position
+        WID=$(get_scratchpad_id)
+        [ -z "$WID" ] && continue
+        STATE=$(bspc query -T -n "$WID" | jq -r '.client.state')
+        [ "$STATE" = "floating" ] || continue
+        bspc node "$WID" -m focused
+        xdo move   -x "$X_POS" -y "$Y_POS" "$WID"
+        xdo resize -w "$WIDTH"  -h "$HEIGHT"  "$WID"
+    done &
+    echo $! > "$SUB_PID_FILE"
+fi

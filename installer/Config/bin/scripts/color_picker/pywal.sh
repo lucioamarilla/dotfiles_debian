@@ -53,7 +53,6 @@ cat > ~/.BSPWM/Themes/ZeroColor/colors/bin.sh << EOF
 #Scripts
 icon="${color1}"
 fg_icon="${color7}"
-HTB_active="${color1}"
 play="${color1}"
 music="${color1}"
 

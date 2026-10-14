@@ -1,30 +1,22 @@
 #!/bin/bash
-export DISPLAY=:0
-export XAUTHORITY="/home/$(whoami)/.Xauthority"
-source ~/.config/bin/scripts/net_config/get_interface.sh
+# copy_ip.sh — copia la IP pública al portapapeles (utilidad general)
+# Uso: copy_ip.sh --myip   (bind F1)
 
-json="$HOME/.target.json"
-vpn=$(/usr/sbin/ifconfig tun0 2>/dev/null | grep "inet " | awk '{print $2}')
-
-case $1 in
+case "$1" in
     --myip)
-        if [ -n "$vpn" ]; then
-            sleep 0.3
-            xdotool type "$vpn"
-        else
-            my_ip=$(/usr/sbin/ifconfig "$ACTIVE_INTERFACE" | grep "inet " | awk '{print $2}')
-            sleep 0.3
-            xdotool type "$my_ip"
-        fi
+        pub=$(curl -4 -s --max-time 3 ipinfo.io/ip 2>/dev/null \
+              || curl -s --max-time 3 ifconfig.me 2>/dev/null)
+        [ -z "$pub" ] && { dunstify -t 2000 -u critical "IP" "Sin internet / no se pudo consultar"; exit 1; }
+        printf '%s' "$pub" | xclip -selection clipboard
+        dunstify -t 1800 "IP copiada" "$pub"
         exit 0
         ;;
-    --target)
-        target=$(jq -r --argjson id "$(jq '.target | tonumber' "$json")" '.items[] | select(.id == $id) | .target' "$json")
-        IP=$(echo "$target" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-        if [ -n "$IP" ]; then
-            sleep 0.3
-            xdotool type "$IP"
-        fi
+    --local)
+        ip4=$(ip -4 route show default 2>/dev/null | awk '{print $7; exit}')
+        [ -n "$ip4" ] && printf '%s' "$ip4" | xclip -selection clipboard
+        dunstify -t 1800 "IP local copiada" "$ip4"
         exit 0
         ;;
 esac
+echo "uso: copy_ip.sh --myip | --local"
+exit 1

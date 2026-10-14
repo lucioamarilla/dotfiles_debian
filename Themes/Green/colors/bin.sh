@@ -8,12 +8,11 @@
 #Scripts
 icon="#8ccf7e"
 fg_icon="#ffffff"
-HTB_active="#8ccf7e"
 play="#8ccf7e"
 music="#8ccf7e"
 
 
-#i3lock-color
+#i3lock (vanilla de repos Debian)
 bg='#161616'
 highlight='#8ccf7e'
 bg_alt='#0c1d2d'

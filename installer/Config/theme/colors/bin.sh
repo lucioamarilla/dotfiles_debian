@@ -8,7 +8,6 @@
 #Scripts
 icon="#7dcfff"
 fg_icon="#ffffff"
-HTB_active="#9eee00"
 play="#9ece6a"
 music="#7dcfff"
 

@@ -114,7 +114,8 @@ super + ctrl + d
 
 # Settings rápidos (kitty/picom/borders/Kill bar)
 alt + F2
-	bash /usr/local/bin/bspwm_settings
+	~/.config/bin/scripts/bspwm_settings 2>/dev/null || \
+		~/.config/bin/scripts/bspwm_settings
 
 
 #────────────────────────────────────────────────────────
@@ -147,8 +148,7 @@ alt + n
 
 # Clima
 super + alt + y
-	bash /usr/local/bin/weather.sh 2>/dev/null || \
-		~/.config/bin/scripts/weather.sh 2>/dev/null
+	~/.config/bin/scripts/weather.sh 2>/dev/null
 
 
 #────────────────────────────────────────────────────────
@@ -177,8 +177,7 @@ ctrl + super + alt + r
 
 # Layout de teclado (base)
 super + alt + k
-	bash /usr/local/bin/keyboard.sh 2>/dev/null || \
-		~/.config/bin/scripts/keyboard.sh 2>/dev/null
+	~/.config/bin/scripts/keyboard.sh 2>/dev/null
 
 # Cheatsheet: sxhkd coloreado (base usa 'shortcuts')
 alt + F1

@@ -73,11 +73,6 @@ view_status() {
     echo ""
 }
 
-run() {  # wrapper dry-run
-    if $DRY; then echo "${y}[dry]${reset} $*"
-    else "$@"; fi
-}
-
 execute() {
     local msg_progress="$1" msg_success="$2"; shift 2
     local logfile start_time pid
@@ -141,7 +136,8 @@ install_packages() {
         neovim thunar thunar-archive-plugin tumbler \
         blueman bluez network-manager network-manager-gnome wpasupplicant \
         pipewire pipewire-pulse wireplumber pulseaudio-utils \
-        clipmenu curl gawk rsync net-tools python3 python3-pip
+        clipmenu cava xdo xdg-user-dirs curl gawk python3 python3-pip
+        python3-bs4
 
     case "$distro" in
         kali)  sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libdbusmenu-gtk3-4 ;;
@@ -175,8 +171,8 @@ clone_repositories() {
 install_icons_font_build() {
     # Qogir icons (script bash puro, no compila) + cursor del repo
     cd ~/github/Qogir-icon-theme || return 1
-    ./install.sh -d "$HOME/.local/share/icons" -c standard -t default >/dev/null 2>&1 \
-        || ./install.sh >/dev/null 2>&1
+    mkdir -p "$HOME/.local/share/icons"
+    ./install.sh -d "$HOME/.local/share/icons" -c standard -t default >/dev/null 2>&1
 
     dir="$(cd "$REPO" 2>/dev/null && pwd)"
     [ -d "$HOME/.local/share/icons/Qogir" ] || sudo ./install.sh
@@ -241,14 +237,11 @@ themes_config() {
     done
     sudo sed -i 's/\r$//' /usr/local/bin/shortcuts 2>/dev/null || true
 
-    # permisos ejecutables en ~/.config
-    chmod +x \
-        "$HOME/.config/bin/scripts/"* \
-        "$HOME/.config/bspwm/"* \
-        "$HOME/.config/polybar/"*.sh \
-        "$HOME/.config/polybar/themes/"*/*.sh \
-        "$HOME/.config/ranger/"*.sh \
-        "$HOME/.config/rofi/"*/* 2>/dev/null
+    # permisos ejecutables en ~/.config (RECURSIVO: subdirs music/net_config/color_picker/…)
+    find "$HOME/.config/bin/scripts" -type f -exec chmod +x {} + 2>/dev/null
+    find "$HOME/.config/rofi" "$HOME/.config/polybar" "$HOME/.config/bspwm" \
+        -type f \( -name '*.sh' -o -perm -111 \) -exec chmod +x {} + 2>/dev/null
+    chmod +x "$HOME/.config/bspwm/autostart.sh" 2>/dev/null
 
     # picom activo según preset
     if [ "$PRESET" = "vm" ]; then
@@ -267,7 +260,12 @@ themes_config() {
 
 backup_repo() {
     mkdir -p "$HOME/.BSPWM"
-    rsync -a --delete "$REPO/" "$HOME/.BSPWM/" >/dev/null 2>&1
+    rm -rf "$HOME/.BSPWM/"* 2>/dev/null
+    if command -v rsync >/dev/null 2>&1; then
+        rsync -a --exclude=.git "$REPO/" "$HOME/.BSPWM/" 2>&1 | tail -3
+    else
+        cp -a "$REPO/." "$HOME/.BSPWM/" 2>&1 | tail -3
+    fi
 }
 
 cleanup_clone_repos() {
@@ -292,12 +290,18 @@ post_verify() {
     check_item "picom"                  "command -v picom"
     check_item "dunst"                  "command -v dunst"
     check_item "nvim (minimal)"         "command -v nvim"
+    check_item "cava"                   "command -v cava"
+    check_item "xdo (ScrathPad)"        "command -v xdo"
+    check_item "scripts music/net+x"    "[ -x $HOME/.config/bin/scripts/music/artist.sh ]"
     check_item "sessión lightdm on"     "systemctl is-enabled lightdm"
     check_item "sesión bspwm.desktop"   "[ -f /usr/share/xsessions/bspwm.desktop ]"
     check_item "temas en ~/.BSPWM"      "[ -d $HOME/.BSPWM/Themes ]"
     check_item "scripts ~/.config/bin"  "[ -x $HOME/.config/bin/scripts/ScreenLocker ]"
     check_item "fonts HNF instaladas"   "fc-list | grep -qi 'nerd'"
     check_item "zsh default user"       "[ \"\$(getent passwd \$USER | cut -d: -f7)\" = /usr/bin/zsh ]"
+    check_item "cava (polybar)"          "command -v cava"
+    check_item "xdo (ScrathPad)"         "command -v xdo"
+    check_item "music/net scripts +x"    "[ -x $HOME/.config/bin/scripts/music/artist.sh ]"
     echo -e "\n ${g}$ok ok${reset} / ${r}$bad faltantes${reset}"
     [ "$bad" -gt 0 ] && return 1
     return 0
@@ -338,7 +342,7 @@ trap 'kill $SUDO_KEEPER_PID 2>/dev/null' EXIT
 
 execute "Actualizando sistema"          "Sistema actualizado"               system_update
 execute "Instalando paquetes apt"       "Paquetes base instalados"          install_packages "$distro"
-execute "Optimización laptop (tlp/zram)" "Energía thinkpad configurada"     install_laptop_power
+execute "Optimización laptop (tlp/zram)" "Energía laptop config (o skip en VM)"     install_laptop_power
 execute "Clonando Qogir + powerlevel10k" "Repos auxiliares clonados"        clone_repositories
 execute "Iconos Qogir + cursor"         "Iconos y cursor instalados"        install_icons_font_build
 execute "Actualizando cache fonts"      "Fuentes disponibles"               update_fonts_cache
