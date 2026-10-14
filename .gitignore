@@ -11,6 +11,10 @@ config/bspwm/config/.sys
 config/bspwm/config/.first_run_done
 config/bspwm/autostart.sh
 
+# symlinks runtime creados por install.sh/ThemeSwitch (residen dentro del repo)
+config/picom/picom.conf
+config/rofi/themes/theme-active.rasi
+
 # pesados / media local (subir a GitHub? solo thumbs pequeñas en walls/)
 *.mp4
 *.mkv

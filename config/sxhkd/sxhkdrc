@@ -309,7 +309,8 @@ ctrl + alt + b
 super + alt + h
     HideBar --hide
 
-super + alt + u
+# Mostrar barra (ex super+alt+u: movida para no chocar con Updates)
+super + alt + shift + u
     HideBar --unhide
 
 # Apagar / reiniciar (gh0stzk: ctrl+super+alt+P / +R)

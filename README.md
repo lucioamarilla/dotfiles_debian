@@ -26,6 +26,7 @@ config/
 ├── polybar/ → 1 barra inferior sober (vacía de framework: 30 MB RAM)
 ├── rofi/   → launcher + themes/ (dark/light via symlink theme-active.rasi)
 ├── picom/  → 2 presets: picom-hw.conf (glx) / picom-vm.conf (xrender)
+├── fonts/  → Symbols Nerd Font Mono (Debian no la empaqueta; cp a ~/.local/share/fonts)
 ├── dunst/ alacritty/ gtk-3.0/ fastfetch/ flameshot/ zathura/ nvim/
 home/       → .zshrc (sin Oh-My-Zsh: compinit cacheado + plugins from apt)
 install.sh  → apt installer completo
@@ -165,13 +166,16 @@ picom sin blur, zram 40%, tlp tuned, sin OS RAM-buyer (no cheat, no flatpak?).
 ls -l ~/.config | grep dotfiles
 
 # polybar no arranca?
-~/.config/polybar/launch.sh; sleep 2; polybar --edition -c ~/.config/polybar/config.ini
+~/.config/polybar/launch.sh; sleep 2; polybar -c ~/.config/polybar/config.ini main
 
 # reiniciar entorno
 super+alt+r    # SoftReload
 
 # picom flicker en VM?
 # usar preset vm: ln -sf ~/.config/picom/picom-vm.conf ~/.config/picom/picom.conf
+
+# picom FATAL en XFCE ("Another composite manager")?
+# corregido: ~/.config/autostart/picom.desktop oculta el autostart del paquete.
 
 # faltar této? dunstify "not found" — libnotify-bin
 sudo apt install libnotify-bin

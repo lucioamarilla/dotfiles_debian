@@ -58,7 +58,7 @@ run() {
 
 # Sistema de variables para polybar (red/batería/GPU)
 "$HOME/.config/bspwm/bin/SetSysVars" >/dev/null 2>&1
-"$HOME/.config/bspwm/bin/IdleSetup"  >/dev/null 2>&1   # xautolock + xset dpms
+"$HOME/.config/bspwm/bin/IdleSetup"  >/dev/null 2>&1   # xss-lock + xset dpms (trixie: xautolock eliminado)
 
 # Teclas/daemons del entorno
 run sxhkd -c "$HOME/.config/sxhkd/sxhkdrc"

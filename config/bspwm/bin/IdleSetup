@@ -1,40 +1,56 @@
 #!/bin/sh
 # =============================================================
-# IdleSetup — bloqueo automático y DPMS (ThinkPad-friendly)
-# xautolock: 10 min → ScreenLocker ; 30 min → suspend
+# IdleSetup — bloqueo automático y DPMS (Debian 13: xss-lock)
+# NOTA: xautolock fue eliminado de trixie → se usa xss-lock, que
+# reacciona a los timeouts del screensaver de X (xset s).
+#   10 min de idle  → ScreenLocker
+#   30/40/50 min    → DPMS standby/suspend/off
 # Uso: IdleSetup [inicio] | IdleSetup --toggle | --off | --status
-# apt: xautolock, x11-xserver-utils
+# apt: xss-lock, x11-xserver-utils
 # =============================================================
 
+notify() {
+    command -v dunstify >/dev/null 2>&1 && dunstify -u normal -t 2000 "IDLE" "$1"
+}
+
+running() { pgrep -x xss-lock >/dev/null 2>&1; }
+
+# Armado: saver 10 min (xss-lock dispara ScreenLocker) + DPMS
+arm() {
+    xset s 600 60
+    xset dpms 1800 2400 3000
+    xss-lock -- "$HOME/.config/bspwm/bin/ScreenLocker" &
+}
+
+# Desarmado: sin lock ni DPMS
+disarm() {
+    pkill -x xss-lock >/dev/null 2>&1
+    xset s off
+    xset -dpms
+    sleep 0.2
+}
+
 toggle() {
-    if pidof -x xautolock >/dev/null 2>&1; then
-        xautolock -disable
-        dunstify -u normal -t 2000 "IDLE" "Autolock DESACTIVADO"
+    if running; then
+        disarm
+        notify "Autolock DESACTIVADO"
     else
-        xautolock -enable
-        dunstify -u normal -t 2000 "IDLE" "Autolock ACTIVADO"
+        arm
+        notify "Autolock ACTIVADO"
     fi
 }
 
 case "$1" in
-    --toggle|-t) pkill -USR1 xautolock 2>/dev/null; toggle; exit 0 ;;
-    --status|-s)
-        pidof -x xautolock >/dev/null 2>&1 && echo on || echo off
-        exit 0 ;;
-    --off) xautolock -disable 2>/dev/null; xset -dpms 2>/dev/null; exit 0 ;;
+    --toggle|-t) toggle; exit 0 ;;
+    --status|-s) running && echo on || echo off; exit 0 ;;
+    --off) disarm; exit 0 ;;
+    --on|-e) disarm; arm; exit 0 ;;
 esac
 
-# Ya corriendo → re-armar
-if pidof -x xautolock >/dev/null 2>&1; then
-    pkill -USR1 xautolock 2>/dev/null
-    exit 0
+# Inicio (idempotente): ya corriendo → re-armar tiempos
+if running; then
+    pkill -x xss-lock >/dev/null 2>&1
+    sleep 0.2
 fi
-
-xautolock -time 10 \
-    -locker "ScreenLocker" \
-    -detectsleep &
-
-# Pantalla apagada (DPMS): standby/apagado/suspend en segundos
-xset s 900 60
-xset dpms 1800 2400 3000
+arm
 exit 0

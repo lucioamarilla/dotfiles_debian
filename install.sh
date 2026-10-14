@@ -121,24 +121,28 @@ PKGS_CORE=(
     # terminal + shell
     alacritty zsh
     zsh-autosuggestions zsh-syntax-highlighting fzf
-    # utilidades X11
-    xclip xdotool wmctrl arandr xautolock
-    # capturas / control
-    maim flameshot brightnessctl playerctl pavucontrol
+    # utilidades X11 (trixie: xautolock NO existe → xss-lock; psmisc = killall)
+    xclip xdotool wmctrl arandr xss-lock psmisc
+    # capturas / control (i3lock: lock reverso; ffmpeg: grabadora)
+    maim flameshot i3lock ffmpeg brightnessctl playerctl pavucontrol
     # templates + thema
     arc-theme papirus-icon-theme fonts-jetbrains-mono
     fonts-noto fonts-noto-color-emoji
     # red/blu
     network-manager network-manager-gnome wpasupplicant blueman bluez
-    # apps compat
+    # apps compat (qalc = CLI de qalculate; el paquete 'qalculate' ya no existe)
     thunar thunar-archive-plugin tumbler
-    qalculate rofimoji
+    qalc
     zathura zathura-pdf-poppler
     imagemagick jq python3
     lightdm lightdm-gtk-greeter xdg-desktop-portal-gtk
-    clipmenu
-    nvim ripgrep
+    neovim ripgrep
 )
+# NOTAS Debian 13 (trixie):
+#   • clipmenu  : removido de Debian   → vendorizado en config/bspwm/bin/
+#   • rofimoji  : sin paquete          → pipx (se instala en "Extras")
+#   • xautolock : eliminado            → xss-lock (IdleSetup reescrito)
+#   • neovim    : el binario es nvim; el PAQUETE es neovim
 PKGS_BASE_FALLBACK=( eza bat cava xterm )
 
 IS_LAPTOP="no"
@@ -278,6 +282,44 @@ if [ "$PRESET" = "vm" ]; then
 else
     link_or_copy "$HOME/.config/picom/picom-hw.conf" "$PICOM_DEFAULT"
     echo "→ picom backend glx (hardware real)"
+fi
+
+# ─────────────────────────────────────────────────────────────
+banner "Extras Debian 13 (fuentes + rofimoji + picom/XFCE)"
+# ─────────────────────────────────────────────────────────────
+
+if ! $DRY; then
+    # Nerd Font Symbols (Debian no la empaqueta; el repo la vendoriza)
+    mkdir -p "$HOME/.local/share/fonts"
+    if ls "$CONF_SRC"/fonts/*.ttf >/dev/null 2>&1; then
+        cp -f "$CONF_SRC"/fonts/*.ttf "$HOME/.local/share/fonts/"
+        fc-cache -f "$HOME/.local/share/fonts" >/dev/null 2>&1
+        echo "→ Symbols Nerd Font Mono instalada (polybar font-2)"
+    fi
+
+    # rofimoji: no empaquetado en Debian → pipx (wrapper bin/Rofimoji usa fallback)
+    if command -v pipx >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/rofimoji" ]; then
+        pipx install rofimoji >/dev/null 2>&1 && echo "→ rofimoji instalado via pipx" || true
+    fi
+
+    # picom: ocultar el autostart que trae el paquete (choca con xfwm4 en XFCE)
+    mkdir -p "$HOME/.config/autostart"
+    cat > "$HOME/.config/autostart/picom.desktop" <<'PICOMHIDE'
+# Override de /etc/xdg/autostart/picom.desktop (paquete picom de Debian):
+# en XFCE xfwm4 ya compone; en bspwm lo levanta bspwmrc. Evita el
+# "FATAL ERROR: Another composite manager is already running".
+[Desktop Entry]
+Type=Application
+Hidden=true
+PICOMHIDE
+    echo "→ autostart picom ocultado (fix XFCE 'Another composite manager')"
+fi
+
+# Zsh como shell por defecto (opcional; alacritty ya fuerza zsh)
+if ! $DRY && command -v zsh >/dev/null 2>&1 && [ "${SHELL#*zsh}" = "$SHELL" ]; then
+    if ask "¿Zsh como shell por defecto (chsh)? " n; then
+        sudo_run chsh -s /usr/bin/zsh "$USER"
+    fi
 fi
 
 # ─────────────────────────────────────────────────────────────

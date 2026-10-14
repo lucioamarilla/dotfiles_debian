@@ -8,6 +8,13 @@
 
 IMG="/tmp/i3lock-bg.jpg"
 
+# Guard: i3lock instalado (PKGS_CORE lo incluye; fallback grácil si no)
+if ! command -v i3lock >/dev/null 2>&1; then
+    command -v dunstify >/dev/null 2>&1 && \
+        dunstify -u critical -t 3000 "Lock" "i3lock no está instalado"
+    exit 1
+fi
+
 # keymap: guardar layout y restaurar tras unlock (port gh0stzk)
 LAY_FILE="/tmp/locker-keymap"
 setxkbmap -query | awk '/layout:/ {print $2}' > "$LAY_FILE" 2>/dev/null

@@ -80,7 +80,8 @@ ctrl + alt + Delete ......... cerrar sesión (bspc quit)
 ctrl + super + alt + q ...... cerrar sesión (alias)
 super + Escape .............. recargar keybinds sxhkd
 super + alt + r ............. SoftReload (polybar+picom+dunst+docs)
-super + alt + h / u ......... ocultar/mostrar la barra
+# super + alt + u dedupe: Updates vive en super+alt+u; mostrar barra ahora es shift+u
+super + alt + h / shift + u .. ocultar/mostrar la barra
 ctrl + alt + b .............. toggle barra (JaKoolit)
 ctrl + super + alt + p ...... apagar
 ctrl + super + alt + r ...... reiniciar

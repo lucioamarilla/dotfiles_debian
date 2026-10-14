@@ -68,7 +68,9 @@ command -v eza >/dev/null && {
     alias l='eza -lb --icons --group-directories-first'
     alias ll='eza -lha --icons --git --group-directories-first'
 } || alias ls='ls --color=auto'
+# bat: Debian trae el binario como batcat (naming conflict con paquete bat)
 command -v bat >/dev/null && alias cat='bat --paging=never'
+command -v batcat >/dev/null && alias cat='batcat --paging=never'
 alias grep='grep --color=auto'
 alias update='sudo apt-get update && sudo apt-get upgrade'
 alias upgrade='sudo apt-get upgrade'
