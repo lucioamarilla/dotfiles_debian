@@ -158,7 +158,11 @@ install_pkgs() {
     fi
     echo "${CYN}[apt]${RST} instalando $name: ${toinstall[*]}"
     if ! sudo_run env DEBIAN_FRONTEND=noninteractive apt-get -y install "${toinstall[@]}"; then
-        echo "${YLW}NOTA${RST}: alguno falló en $name. Los scripts degradan solos (dunstify avisa)."
+        echo "${YLW}NOTA${RST}: lote $name falló → reintento paquete por paquete"
+        for p in "${toinstall[@]}"; do
+            sudo_run env DEBIAN_FRONTEND=noninteractive apt-get -y install "$p" ||
+                echo "${RED}  ✗ $p${RST} (omitido, degradación bien manejada por los scripts)"
+        done
     fi
 }
 

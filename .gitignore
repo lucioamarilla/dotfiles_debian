@@ -1,28 +1,23 @@
-# Sincronizar files subidos grandes (wallpapers >5MB se rechazan en GitHub)
-*.mp4
-*.mkv
-*.webm
-*.iso
-
-# logs del install
+# Estado generado en runtime (reside DENTRO del repo porque ~/.config/bspwm
+# es symlink al repo — no versionar)
 install-*.log
-
-# usuario / propias
-config/bspwm/config/.sys
-config/bspwm/config/system.ini
 config/bspwm/.theme
 config/bspwm/.terminal
 config/bspwm/.kb-layout
 config/bspwm/.wallpaper
 config/bspwm/.weathercity
+config/bspwm/config/system.ini
+config/bspwm/config/.sys
 config/bspwm/config/.first_run_done
 config/bspwm/autostart.sh
 
-# clips a caché de polybar? No versionar cache generado
-*.bak
-/ventanas.log
+# pesados / media local (subir a GitHub? solo thumbs pequeñas en walls/)
+*.mp4
+*.mkv
+*.webm
+*.iso
 
-# secretos (por si archivos futuros)
-.ssh
-*.pem
+# secrets
 .env
+*.pem
+.ssh/

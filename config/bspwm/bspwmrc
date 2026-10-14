@@ -63,6 +63,12 @@ run() {
 # Teclas/daemons del entorno
 run sxhkd -c "$HOME/.config/sxhkd/sxhkdrc"
 
+# Wallpaper persistente (elegido con WallSelect)
+if [ -f "$HOME/.config/bspwm/.wallpaper" ] && command -v feh >/dev/null; then
+    WALL=$(cat "$HOME/.config/bspwm/.wallpaper")
+    [ -f "$WALL" ] && feh --bg-fill "$WALL" &
+fi
+
 # Compositor — preset según hardware (hw=glx / vm=xrender)
 run picom --config "$HOME/.config/picom/picom.conf"
 

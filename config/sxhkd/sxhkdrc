@@ -337,7 +337,7 @@ XF86AudioMicMute
     Volume --mic
 
 # Fallback volumen sin Fn (JaKoolit-style remaps)
-super + alt {minus,plus,equal}
+super + alt + {minus,plus,equal}
     Volume {--dec,--inc,--toggle}
 
 # Brillo (ThinkPad)
@@ -351,7 +351,7 @@ XF86Audio{Prev,Next}
     MediaControl {--previous,--next}
 
 # Modo avión (tecla WIFI del ThinkPad)
-XF86{WLAN,RFKill}
+XF86WLAN
     NetMenu --airplane
 
 # Sleep
