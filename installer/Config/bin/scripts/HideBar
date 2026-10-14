@@ -1,0 +1,24 @@
+#!/bin/sh
+# =============================================================
+# HideBar — toggle visible/oculto polybar con archivo de estado
+# [polybar-msg no tiene "toggle": track de estado propio]
+# =============================================================
+
+command -v polybar-msg >/dev/null 2>&1 || { dunstify -t 1500 "Bar" "polybar-msg no disponible"; exit 1; }
+
+STATE="$HOME/.cache/.polybar-hidden"
+mkdir -p "$HOME/.cache"
+
+case "$1" in
+    --hide)    polybar-msg cmd hide >/dev/null 2>&1;   touch "$STATE" 2>/dev/null ;;
+    --unhide)  polybar-msg cmd unhide >/dev/null 2>&1; rm -f "$STATE" ;;
+    --toggle|"")
+        if [ -f "$STATE" ]; then
+            polybar-msg cmd unhide >/dev/null 2>&1
+            rm -f "$STATE"
+        else
+            polybar-msg cmd hide >/dev/null 2>&1
+            touch "$STATE"
+        fi
+        ;;
+esac

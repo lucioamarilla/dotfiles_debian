@@ -1,0 +1,32 @@
+#!/bin/sh
+# =============================================================
+# DunstPanel — historial notificaciones dunst + menú rofi
+# (equivalente liviano del panel de notificaciones de JaKoolit)
+# apt: dunst, rofi
+# =============================================================
+
+T="$HOME/.config/rofi/themes/config.rasi"
+
+# exportar historial legible
+HIST=$(dunstctl history | python3 -c '
+import json, sys
+try:
+    data = json.load(sys.stdin)["data"][0]
+except Exception:
+    sys.exit(0)
+for i, n in enumerate(data[:15], start=1):
+    app = (n[3] or "")[:14]
+    msg = (n[5] or "").replace("\n", " · ")[:60]
+    print(f"{i}. [{app}] {msg}")
+' 2>/dev/null)
+
+sel=$( { printf '🗑 Cerrar todas\n'; echo "$HIST"; } | \
+    rofi -dmenu -i -p "Notificaciones" -theme "$T" 2>/dev/null)
+
+case "$sel" in
+    *Cerrar*) dunstctl close-all ;;
+    *)
+        idx=$(printf '%s' "$sel" | awk -F. '{print $1}')
+        [ -n "$idx" ] && dunstctl set-priority "$idx" 80 2>/dev/null
+        ;;
+esac

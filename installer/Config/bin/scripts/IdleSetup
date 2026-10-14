@@ -1,0 +1,27 @@
+#!/bin/sh
+# =============================================================
+# IdleSetup — autolock + DPMS (ThinkPad-friendly)
+# apt: xautolock, x11-xserver-utils
+# Uso: IdleSetup (inicio) | --toggle | --status
+# =============================================================
+
+case "$1" in
+    --status|-s)
+        pidof -x xautolock >/dev/null 2>&1 && echo on || echo off
+        exit 0 ;;
+    --toggle|-t)
+        pkill -USR1 xautolock 2>/dev/null
+        if pidof -x xautolock >/dev/null 2>&1; then
+            xautolock -disable
+        else
+            xautolock -enable
+        fi
+        exit 0 ;;
+esac
+
+pidof -x xautolock >/dev/null 2>&1 && { pkill -USR1 xautolock 2>/dev/null; exit 0; }
+
+xautolock -time 10 -locker "$HOME/.config/bin/scripts/ScreenLocker" -detectsleep &
+xset s 900 60
+xset dpms 1800 2400 3000
+exit 0

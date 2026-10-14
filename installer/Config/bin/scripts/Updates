@@ -1,0 +1,27 @@
+#!/bin/sh
+# =============================================================
+# Updates — apt updates rofi applet (extra)
+# Uso: Updates --menu | --notify
+# =============================================================
+
+T="$HOME/.config/rofi/themes/config.rasi"
+
+count() { apt list --upgradable 2>/dev/null | sed 1d | wc -l; }
+
+case "$1" in
+    --notify)
+        n=$(count)
+        [ "$n" -gt 0 2>/dev/null ] && dunstify -t 3000 "apt" "$n paquetes para actualizar"
+        exit 0 ;;
+    --menu|"")
+        n=$(count)
+        if [ -z "$n" ] || [ "$n" -le 0 ]; then
+            rofi -e "Sistema al día ✔" -theme "$T" 2>/dev/null
+            exit 0
+        fi
+        pkgs=$(apt list --upgradable 2>/dev/null | sed 1d | awk '{print $1}' | sort | \
+            rofi -dmenu -i -p "Actualizables ($n)" -theme "$T" 2>/dev/null)
+        [ -z "$pkgs" ] && exit 0
+        kitty -e sh -c "sudo apt upgrade -y; echo; read -n1 -r -p 'Enter para cerrar' x" &
+        ;;
+esac

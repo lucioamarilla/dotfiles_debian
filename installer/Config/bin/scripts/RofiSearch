@@ -1,0 +1,10 @@
+#!/bin/sh
+# =============================================================
+# RofiSearch — búsqueda web (JaKoolit RofiSearch port)
+# =============================================================
+
+T="$HOME/.config/rofi/themes/config.rasi"
+q=$(printf '' | rofi -dmenu -p "Buscar" -theme "$T" 2>/dev/null)
+[ -z "$q" ] && exit 0
+enc=$(printf '%s' "$q" | sed 's/ /%20/g')
+exec xdg-open "https://duckduckgo.com/?q=$enc"

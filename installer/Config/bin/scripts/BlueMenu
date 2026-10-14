@@ -1,0 +1,45 @@
+#!/bin/sh
+# =============================================================
+# BlueMenu — bluetooth rofi applet  [apt: bluez, rofi]
+# =============================================================
+
+T="$HOME/.config/rofi/themes/config.rasi"
+
+sel=$(printf '⏻ Power toggle\n🔍 Escanear\n🔗 Conectar/Desconectar\n🗑 Forget device\n' \
+    | rofi -dmenu -p "BT" -theme "$T" 2>/dev/null)
+[ -z "$sel" ] && exit 0
+
+case "$sel" in
+    Power*)
+        S=$(bluetoothctl show 2>/dev/null | awk '/Powered/ {print $2}')
+        if [ "$S" = "yes" ]; then
+            echo -e "power off" | bluetoothctl >/dev/null 2>&1
+        else
+            echo -e "power on" | bluetoothctl >/dev/null 2>&1
+        fi
+        command -v systemctl >/dev/null && systemctl is-active --quiet bluetooth \
+            || systemctl start bluetooth 2>/dev/null
+        ;;
+    Escanear*)
+        dunstify -t 2000 "BT" "Escaneando…"
+        bluetoothctl --timeout 12 scan on >/dev/null 2>&1 &
+        ;;
+    Conectar*|Desconectar*)
+        dev=$(bluetoothctl devices 2>/dev/null | sed 's/Device //' | \
+            rofi -dmenu -p "BT device" -theme "$T" 2>/dev/null)
+        [ -z "$dev" ] && exit 0
+        mac=$(printf '%s' "$dev" | awk '{print $1}')
+        if bluetoothctl info "$mac" 2>/dev/null | grep -q "Connected: yes"; then
+            bluetoothctl disconnect "$mac" >/dev/null 2>&1
+            dunstify -t 1500 "BT" "Desconectado"
+        else
+            bluetoothctl connect "$mac" >/dev/null 2>&1
+            dunstify -t 1500 "BT" "Conectado: $dev"
+        fi
+        ;;
+    Forget*)
+        dev=$(bluetoothctl devices 2>/dev/null | sed 's/Device //' | \
+            rofi -dmenu -p "BT forget" -theme "$T" 2>/dev/null)
+        [ -n "$dev" ] && bluetoothctl remove "$(printf '%s' "$dev" | awk '{print $1}')" >/dev/null 2>&1
+        ;;
+esac

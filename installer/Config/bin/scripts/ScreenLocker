@@ -1,0 +1,37 @@
+#!/bin/sh
+# =============================================================
+# ScreenLocker — port con i3lock de repos (sin compilar)
+# Mantiene la estética everblush/tema activo de MF-Rayo.
+# apt: i3lock, maim, imagemagick
+# =============================================================
+
+IMG="/tmp/i3lock-bg.jpg"
+# Colores del tema activo (theme/colors/bin.sh)
+. "$HOME/.config/theme/colors/bin.sh" 2>/dev/null || {
+    bg='#2f343f'; highlight='#7dcfff'; text='#dadada'
+}
+
+# layout: guardar y restaurar (como el original everblush)
+LAY="/tmp/locker-keymap"
+setxkbmap -query 2>/dev/null | awk '/layout:/ {print $2}' > "$LAY"
+
+# captura + blur
+maim -d 0.3 -u "$IMG" 2>/dev/null || { printf '%s' "$bg" >/dev/null; }
+magick "$IMG" -blur 5x4 "$IMG" 2>/dev/null || convert "$IMG" -blur 5x4 "$IMG" 2>/dev/null
+
+i3lock -n -t -i "$IMG" -e --indicator \
+    --inside-color="$bg" \
+    --ring-color="$highlight" \
+    --insidever-color="$highlight" \
+    --ringver-color="$highlight" \
+    --insidewrong-color='#e06e6e' \
+    --ringwrong-color='#e06e6e' \
+    --time-color="$text" --date-color="$text" \
+    --keyhl-color="$highlight" \
+    --separator-color="$highlight" \
+    --pass-media-keys --pass-volume-keys
+
+# restore layout
+prev=$(cat "$LAY" 2>/dev/null)
+rm -f "$LAY" "$IMG"
+[ -n "$prev" ] && setxkbmap -layout "$prev" 2>/dev/null

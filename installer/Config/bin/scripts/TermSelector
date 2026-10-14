@@ -1,0 +1,20 @@
+#!/bin/sh
+# =============================================================
+# TermSelector — elegir terminal por defecto (kitty estándar)
+# Guarda en ~/.config/bspwm/.terminal; sxhkd deja de hardcodear kitty
+# si existe ese archivo (ver útil DropDownTerm.sh).
+# =============================================================
+
+T="$HOME/.config/rofi/themes/config.rasi"
+mkdir -p "$HOME/.config/bspwm"
+
+sel=$(printf 'kitty\nalacritty\nst\n' | rofi -dmenu -p "Terminal" -theme "$T" 2>/dev/null)
+[ -z "$sel" ] && exit 0
+
+if ! command -v "$sel" >/dev/null 2>&1; then
+    dunstify -t 2000 "Terminal" "$sel no instalado"
+    exit 1
+fi
+
+echo "$sel" > "$HOME/.config/bspwm/.terminal"
+dunstify -t 1500 "Terminal" "$sel guardado"

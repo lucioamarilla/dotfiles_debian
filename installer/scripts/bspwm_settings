@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# bspwm_settings — menú rápido: kitty/picom/borders/bars
+# (base MF-Rayo, sin opción EWW — eww descartado en v2)
+
+kitty_style(){
+    local setting="$1"
+    if [[ "$setting" == "bg-alt" ]]; then
+        sed -i -e "s/background .*/background #000000/g" ~/.config/theme/colors/kitty.ini
+    else
+        sed -i -e "s/background_opacity .*/background_opacity $setting/g" ~/.config/kitty/kitty.conf
+    fi
+    kill -USR1 $(pgrep -x kitty) 2>/dev/null
+    pkill -USR1 cava 2>/dev/null
+}
+
+picom_style(){
+    local style="$1"
+    if [[ "$style" == "100" ]]; then
+        cp -f ~/.BSPWM/installer/Config/picom/picom.conf ~/.config/picom/picom.conf
+    else
+        cp -f ~/.BSPWM/installer/Config/picom/no_blur_picom.conf ~/.config/picom/picom.conf
+    fi
+    pkill -x picom 2>/dev/null
+    sleep 0.3
+    picom -b 2>/dev/null
+}
+
+border_style(){
+    local border="$1"
+    sed -i -e "s/bspc config border_width.*/bspc config border_width $border/g" ~/.config/bspwm/bspwmrc
+    bspc wm -r
+}
+
+interpreter_shell(){
+    local inter="$1"
+    sed -i -e "s/shell .*/shell $inter/g" ~/.config/kitty/kitty.conf
+}
+
+kill_(){
+    pkill -x polybar 2>/dev/null
+    pkill -f "$HOME/.config/polybar/launch.sh" 2>/dev/null
+}
+
+MENU="$(rofi -no-config -no-lazy-grab -sep "|" -dmenu -i -p '' \
+-theme-str "entry { placeholder: \" BSPWM Settings \"; }" -theme $HOME/.config/rofi/notes/note.rasi \
+<<< "󰄛 KittyㅤTransparencyㅤ80%|󰄛 KittyㅤTransparencyㅤ50%|󰄛 KittyㅤTransparencyㅤ100%|󰄛 KittyㅤBackgroundㅤAlt|󱂬 PicomㅤBlurㅤON| \
+󱂬 PicomㅤBlurㅤOFF|󰢡 EnableㅤBorders|󰢤 DisableㅤBorders|󱓇 KillㅤPolybar")"
+
+case "$MENU" in
+    *Kitty*ㅤTransparency*80%)         kitty_style "0.8" ;;
+    *Kitty*ㅤTransparency*50%)         kitty_style "0.5" ;;
+    *Kitty*ㅤTransparency*100%)        kitty_style "1" ;;
+    *Kitty*ㅤBackground*Alt)           kitty_style "bg-alt" ;;
+    *Picom*ㅤBlur*ON)                  picom_style "100" ;;
+    *Picom*ㅤBlur*OFF)                 picom_style "0" ;;
+    *Enable*Borders)                   border_style "2.5" ;;
+    *Disable*Borders)                  border_style "0" ;;
+    *Kill*Polybar)                     kill_ ;;
+esac

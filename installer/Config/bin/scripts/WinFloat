@@ -1,0 +1,18 @@
+#!/bin/sh
+# =============================================================
+# WinFloat — toggle floats (JaKoolit workspaceopt allfloat port)
+# Uso: WinFloat --desktop | --all
+# =============================================================
+
+case "$1" in
+    --desktop|"")
+        bspc query -N -d focused -n .tiled 2>/dev/null | while IFS= read -r n; do
+            bspc node "$n" -t floating
+        done
+        ;;
+    --all)
+        bspc query -N -n .tiled 2>/dev/null | while IFS= read -r n; do
+            bspc node "$n" -t floating
+        done
+        ;;
+esac

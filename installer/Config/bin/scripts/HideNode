@@ -1,0 +1,32 @@
+#!/bin/sh
+# =============================================================
+# HideNode — ocultar/restaurar ventanas waiting (port JAK special)
+# Uso: HideNode --hide | --menu
+# =============================================================
+
+T="$HOME/.config/rofi/themes/config.rasi"
+
+case "$1" in
+    --hide)
+        NODE=$(bspc query -N -n focused 2>/dev/null)
+        [ -n "$NODE" ] && bspc node "$NODE" -g hidden=on
+        ;;
+    *)
+        # --menu: listar ventanas ocultas y restaurar la elegida
+        HIDDEN=$(bspc query -N -n ".hidden" 2>/dev/null)
+        [ -z "$HIDDEN" ] && { dunstify -t 1500 "HideNode" "Nada oculto"; exit 0; }
+
+        MENU=$(printf '%s' "$HIDDEN" | while IFS= read -r n; do
+            title=$(xprop -id "$n" -notype WM_NAME 2>/dev/null \
+                | sed -n 's/^WM_NAME(STRING) = //p')
+            printf '%s|%s\n' "$n" "${title:-(sin título)}"
+        done)
+
+        sel=$(printf '%s\n' "$MENU" | cut -d'|' -f2 | \
+            rofi -dmenu -p "Ventanas ocultas" -theme "$T" 2>/dev/null)
+        [ -z "$sel" ] && exit 0
+
+        NODE=$(printf '%s\n' "$MENU" | awk -F'|' -v t="$sel" '$2 == t {print $1; exit}')
+        [ -n "$NODE" ] && bspc node "$NODE" -g hidden=off -f
+        ;;
+esac

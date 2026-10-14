@@ -1,0 +1,7 @@
+#!/bin/sh
+# =============================================================
+# ClipMenu — clipboard manager (rofi backend installed via apt)
+# apt: clipmenu (CM_LAUNCHER=rofi por defecto instalado)
+# =============================================================
+
+exec clipmenu "$@"

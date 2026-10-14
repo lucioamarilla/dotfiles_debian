@@ -1,0 +1,381 @@
+#────────────────────────────────────────────────────────
+#    sxhkdrc — Dotfiles Debian (BSPWM + X11)
+#
+#  Base    : MF-Rayo/bspwm-dotfiles-debian (clásico bspwm)
+#  Capa    : comandos de JaKoolit (Ubuntu-Hyprland) portados
+#  Extras  : gh0stzk-style (transparencia, balance, rotación)
+#
+#  Recarga sxhkd      : super + Escape
+#  Cheatsheet         : alt + F1
+#  Settings rápidos   : alt + F2
+#  (sin binds de pentest: preparado para uso diario/laboral)
+#────────────────────────────────────────────────────────
+
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  _  TERMINAL
+#────────────────────────────────────────────────────────
+
+# Terminal default (kitty; respeta ~/.config/bspwm/.terminal si existe)
+super + Return
+	LIBGL_ALWAYS_SOFTWARE=1 $(cat "$HOME/.config/bspwm/.terminal" 2>/dev/null || echo kitty)
+
+# Terminal dropdown / flotante (JaKoolit: super+Shift+Return)
+super + shift + Return
+	~/.config/bin/scripts/DropDownTerm.sh
+
+# Scratchpad (base MF-Rayo)
+alt + s
+	~/.config/bin/scripts/ScrathPad.sh
+
+# Selector de terminal
+super + alt + t
+	~/.config/bin/scripts/TermSelector
+
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  LANZADORES / MENÚS
+#────────────────────────────────────────────────────────
+
+# App launcher (base: super+d — JaKoolit igual)
+super + d
+	rofi -show drun -show-icons -theme ~/.config/rofi/application/apps.rasi
+
+# Power menu (base: super+p — JaKoolit: ctrl+alt+P)
+super + p
+	~/.config/rofi/power_menu/power
+ctrl + alt + p
+	~/.config/rofi/power_menu/power
+
+# Screenshot menu (base: Print)
+@Print
+	~/.config/rofi/screenshot/screenshot
+
+# Screenshot con anotaciones (JaKoolit: super+Shift+S swappy)
+super + alt + s
+	flameshot gui
+
+# Búsqueda web (JaKoolit: super+S)
+super + s
+	~/.config/bin/scripts/RofiSearch
+
+# Calculadora (JaKoolit: super+alt+C)
+super + alt + c
+	~/.config/bin/scripts/RofiCalc
+
+# Emoji picker (JaKoolit: super+alt+E)
+super + alt + e
+	~/.config/bin/scripts/Rofimoji
+
+# Clipboard (clipmenu)
+super + alt + v
+	~/.config/bin/scripts/ClipMenu
+
+# Panel notificaciones (JaKoolit: super+Shift+N)
+super + shift + n
+	~/.config/bin/scripts/DunstPanel
+
+# Red (nmcli/rofi)
+super + alt + n
+	~/.config/bin/scripts/NetMenu
+
+# Bluetooth
+super + alt + b
+	~/.config/bin/scripts/BlueMenu
+
+# Updates apt
+super + alt + u
+	~/.config/bin/scripts/Updates --menu
+
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  _  TEMAS (sistema MF-Rayo)
+#────────────────────────────────────────────────────────
+
+# Theme selector con previews (base: super+ctrl+t — gh0stzk: alt+space)
+super + ctrl + t
+	~/.config/rofi/themes/ThemeSelect
+alt + @space
+	~/.config/rofi/themes/ThemeSelect
+
+# Polybar style selector (Cuts/Lofi/Pacman/Round/Shapes)
+super + ctrl + p
+	~/.config/rofi/themes/PolySelect
+
+# Wallpaper selector local (base: super+ctrl+w — JaKoolit: super+W)
+super + ctrl + w
+	~/.config/rofi/wallpaper/WallSelect
+super + w
+	~/.config/rofi/wallpaper/WallSelect
+
+# Descargar wallpapers (wallhaven/moewalls)
+super + ctrl + d
+	~/.config/rofi/wallpaper/download_wallpaper.sh
+
+# Settings rápidos (kitty/picom/borders/Kill bar)
+alt + F2
+	bash /usr/local/bin/bspwm_settings
+
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  _  APPS BASE
+#────────────────────────────────────────────────────────
+
+# Navegador
+super + shift + f
+	firefox
+
+# File manager GUI (thunar)
+super + e
+	thunar
+
+# File manager terminal (ranger)
+super + shift + e
+	LIBGL_ALWAYS_SOFTWARE=1 kitty -e ranger
+
+# Editor nvim
+super + v
+	LIBGL_ALWAYS_SOFTWARE=1 kitty -e nvim
+
+# Música rofi (base: alt+m)
+alt + m
+	~/.config/rofi/music/player.sh
+
+# Notas rofi (base: alt+n)
+alt + n
+	~/.config/rofi/notes/notes
+
+# Clima
+super + alt + y
+	bash /usr/local/bin/weather.sh 2>/dev/null || \
+		~/.config/bin/scripts/weather.sh 2>/dev/null
+
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  SISTEMA
+#────────────────────────────────────────────────────────
+
+# Lock (base: shift+l — JaKoolit: ctrl+alt+L)
+shift + l
+	~/.config/bin/scripts/ScreenLocker
+ctrl + alt + l
+	~/.config/bin/scripts/ScreenLocker
+
+# Salir de estructura (JaKoolit: ctrl+alt+Delete)
+ctrl + alt + Delete
+	bspc quit
+
+# Recargar keybinds sxhkd
+super + Escape
+	pkill -USR1 -x sxhkd; dunstify -u low -t 1500 'sxhkd' 'Keybinds recargados'
+
+# Apagar / Reiniciar directo
+ctrl + super + alt + p
+	systemctl poweroff
+ctrl + super + alt + r
+	systemctl reboot
+
+# Layout de teclado (base)
+super + alt + k
+	bash /usr/local/bin/keyboard.sh 2>/dev/null || \
+		~/.config/bin/scripts/keyboard.sh 2>/dev/null
+
+# Cheatsheet: sxhkd coloreado (base usa 'shortcuts')
+alt + F1
+	sh -c "batcat --paging=never \"$HOME/.config/sxhkd/sxhkdrc\" -l ruby 2>/dev/null || cat \"$HOME/.config/sxhkd/sxhkdrc\""
+
+# Barra polybar toggle (JaKoolit: ctrl+alt+B)
+ctrl + alt + b
+	~/.config/bin/scripts/HideBar --toggle
+
+# Quit / Restart BSPWM (base: super+alt+Q/R)
+super + alt + {q,r}
+	bspc {quit,wm -r}
+
+# Copiar mi IP pública (base: F1)
+F1
+	~/.config/bin/scripts/copy_ip.sh --myip
+
+
+#────────────────────────────────────────────────────────
+#   _  _  _  VENTANAS — ESTADOS
+#────────────────────────────────────────────────────────
+
+# Cerrar / matar proceso (base + JaKoolit: super+Q; alias super+X)
+super + {_,shift + }q
+	bspc node -{c,k}
+super + x
+	bspc node -c
+super + shift + x
+	bspc node -k
+
+# Fullscreen (base+JaKoolit: super+F)
+super + f
+	bspc node -t '~fullscreen'
+
+# Floating toggle (JaKoolit: super+Space — el super+s de la base pasa a búsqueda)
+super + space
+	bspc node -t '~floating'
+
+# Tiled / pseudo states
+super + t
+	bspc node -t tiled
+super + shift + t
+	bspc node -t '~pseudo_tiled'
+
+# Layout monocle/tiled (base: super+m — JaKoolit: super+alt+L)
+super + m
+	bspc desktop -l next
+
+# Node marked → preselección / swap con mayor (base)
+super + y
+	bspc node newest.marked.local -n newest.!automatic.local
+super + g
+	bspc node -s biggest.window
+
+# Flags (base)
+super + ctrl + {m,x,y,z}
+	bspc node -g {marked,locked,sticky,private}
+
+# Todas flotantes desktop (JaKoolit: super+alt+Space)
+super + alt + space
+	~/.config/bin/scripts/WinFloat --desktop
+
+
+#────────────────────────────────────────────────────────
+#    ____  _  _ FOCUS / NAVEGACIÓN
+#────────────────────────────────────────────────────────
+
+# Focus / Swap (base: shift = swap — igual que JaKoolit resize pero bspwm-native)
+super + {_,shift + }{Left,Down,Up,Right}
+	bspc node -{f,s} {west,south,north,east}
+
+# Focus subtree (base)
+super + {comma,period}
+	bspc node -f @{brother,first,second}
+
+# Ventana next/prev (base)
+super + {_,shift + }c
+	bspc node -f {next,prev}.local.!hidden.window
+
+# Desktop prev/next (base)
+super + bracket{left,right}
+	bspc desktop -f {prev,next}.local
+
+# Último nodo/desktop (base)
+super + {_,shift + }Tab
+	bspc {node,desktop} -f last
+
+# Focus history (base)
+super + {o,i}
+	bspc wm -h off; \
+	bspc node {older,newer} -f; \
+	bspc wm -h on
+
+# Window switcher (JaKoolit: alt+Tab)
+alt + Tab
+	rofi -show window -show-icons -theme ~/.config/rofi/application/apps.rasi \
+		-kb-accept-entry "!Alt-Tab,Return" -kb-element-next "Alt-Tab"
+
+# Ventanas ocultas = special workspace (JaKoolit: super+U ≈)
+alt + h
+	~/.config/bin/scripts/HideNode --hide
+ctrl + alt + h
+	~/.config/bin/scripts/HideNode --menu
+
+
+#────────────────────────────────────────────────────────
+#    __  ___ _  WORKSPACES
+#────────────────────────────────────────────────────────
+
+# Focus / enviar nodo (base + JaKoolit)
+super + {_,shift + }{1-9,0}
+	bspc {desktop -f,node -d} '^{1-9,10}'
+
+# Mover sin seguir (JaKoolit: super+Ctrl+1-0 silent)
+super + ctrl + {1-9,0}
+	bspc node -d '^{1-9,10}'
+
+# Preselect dirección (base)
+super + ctrl + alt + {Left,Down,Up,Right}
+	bspc node -p {west,south,north,east}
+
+# Cancelar preselección nodo / desktop (base)
+super + ctrl + space
+	bspc node -p cancel
+super + ctrl + alt + space
+	bspc query -N -d | xargs -I id -n 1 bspc node id -p cancel
+
+# Scroll de desktops (JaKoolit: super+rueda)
+super + button{4,5}
+	bspc desktop -f {prev,next}
+
+
+#────────────────────────────────────────────────────────
+#    ___  ____ RESIZE / MOVE
+#────────────────────────────────────────────────────────
+
+# Expandir / contraer (base)
+super + alt + {Left,Down,Up,Right}
+	bspc node -z {left -20 0,bottom 0 20,top 0 -20,right 20 0}
+super + alt + shift + {Left,Down,Up,Right}
+	bspc node -z {right -20 0,top 0 20,bottom 0 -40,left 20 0}
+
+# Mover ventana flotante (base)
+super + ctrl + {Left,Down,Up,Right}
+	bspc node -v {-20 0,0 20,0 -20,20 0}
+
+# Balancear / rotar (gh0stzk-style)
+super + equal
+	bspc node @/ -B
+super + slash
+	bspc node @parent -R 90
+
+
+#────────────────────────────────────────────────────────
+#    ___  _  HARDWARE (XF86 — ThinkPad)
+#────────────────────────────────────────────────────────
+
+# Volumen 5% (base usaba 1%)
+XF86Audio{RaiseVolume,LowerVolume}
+	pactl set-sink-volume @DEFAULT_SINK@ {+5%,-5%}
+
+# Mute / mic
+XF86AudioMute
+	pactl set-sink-mute @DEFAULT_SINK@ toggle
+XF86AudioMicMute
+	pactl set-source-mute @DEFAULT_SOURCE@ toggle
+
+# Volumen sin Fn (extra)
+super + alt + {minus,plus}
+	pactl set-sink-volume @DEFAULT_SINK@ {-5%,+5%}
+super + alt + equal
+	pactl set-sink-mute @DEFAULT_SINK@ toggle
+
+# Brillo (port JaKoolit)
+XF86MonBrightness{Up,Down}
+	brightnessctl set {5%+,5%-}
+
+# Media (base ya usaba playerctl ✓)
+XF86Audio{Next,Prev,Play,Pause,Stop}
+	playerctl {next,previous,play-pause,play-pause,stop}
+
+# Modo avión (WiFi script base)
+XF86WLAN
+	~/.config/bin/scripts/NetMenu --airplane
+
+# Sleep
+XF86Sleep
+	systemctl suspend
+
+# Transparencia ventana activa (gh0stzk)
+ctrl + alt + {plus,minus,t}
+	picom-trans -c {+3,-3,} 2>/dev/null || picom-trans -c -d
+
+
+#────────────────────────────────────────────────────────
+#  Nota: JaKoolit resize (super+Shift+arrows) y swap
+#  (super+Alt+arrows) ceden frente a bspwm clásico aquí:
+#  shift+arrows = swap · alt+arrows = resize. Documentado
+#  en README.md → keybinds & JaKoolit-equivalencias.
+#────────────────────────────────────────────────────────
