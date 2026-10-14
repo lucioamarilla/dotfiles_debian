@@ -12,11 +12,13 @@ HIST_FILE="$HOME/.cache/rofi-calc.history"
 save_to_hist() { echo "$1" >> "$HIST_FILE"; }
 
 while true; do
-    historical=""
-    [ -f "$HIST_FILE" ] && historical=$(tac "$HIST_FILE" | head -n 5)
-    q=$(printf '%s\n' "exit=" $(echo "$historical" | head -n0) | rofi -dmenu -p "qalc" \
+    # menú: historial reciente + exit=
+    hist_menu=""
+    if [ -f "$HIST_FILE" ]; then
+        hist_menu=$(tac "$HIST_FILE" | head -n 5)
+    fi
+    q=$( { printf '%s\n' "$hist_menu"; echo "exit="; } | rofi -dmenu -p "qalc \[enter=calcular\]" \
         -theme "$T" 2>/dev/null)
-    # en UI: escribir la cuenta, resultado sale en prompt del next loop
     [ -z "$q" ] && exit 0
     [ "$q" = "exit=" ] && exit 0
     result=$(qalc --color=never -t 4 "$q" 2>/dev/null)

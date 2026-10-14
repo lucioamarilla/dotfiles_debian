@@ -34,9 +34,12 @@ setopt NO_BEEP
 
 # ── Completion (compinit cacheado — arranque rápido) ───────
 autoload -Uz compinit
-# regenerar cada 24h
 ZSH_COMP="$HOME/.cache/zcompdump"
-if [ ! -f "$ZSH_COMP" ] || [ $(find "$ZSH_COMP" -mtime +1 2>/dev/null | wc -l) -gt 0 ]; then
+if [ -f "$ZSH_COMP" ] && [ -n "$(find "$ZSH_COMP" -mtime +1 -print -quit 2>/dev/null)" ]; then
+    # cache viejo (>24h) → regeneración completa
+    compinit -d "$ZSH_COMP"
+else
+    # cache fresco → carga rápida
     compinit -C -d "$ZSH_COMP"
 fi
 

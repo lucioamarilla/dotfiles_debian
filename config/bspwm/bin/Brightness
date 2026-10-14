@@ -16,13 +16,23 @@ notify_b() {
 
 adjust() {
     cur=$(get_b)
+    [ -z "$cur" ] && cur=50
+
     case "$1" in
         up)
-            [ "$cur" -le "$MIN" ] && set="+" || set="${STEPS}%+"
+            if [ "$cur" -le "$MIN" ]; then
+                set="$STEPS%"
+            else
+                set="${STEPS}%+"
+            fi
             ;;
         down)
             threshold=$((MIN + STEPS))
-            [ "$cur" -le "$threshold" ] && set="${MIN}%" && [ "${cur}" -eq 0 ] && exit 0 || set="${STEPS}%-"
+            if [ "$cur" -le "$threshold" ]; then
+                set="${MIN}%"
+            else
+                set="${STEPS}%-"
+            fi
             ;;
     esac
     new=$(brightnessctl set "$set" 2>/dev/null | extract_pct)

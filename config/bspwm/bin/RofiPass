@@ -18,18 +18,13 @@ ENTRY=$(find "$PASS_DIR" -name '*.gpg' | \
     rofi -dmenu -p "pass:" -theme "$T" 2>/dev/null)
 [ -z "$ENTRY" ] && exit 0
 
-mode=$(printf 'Copiar password\nCopiar usuario (user)\nVisualizar (tipo)\n' |
+mode=$(printf 'Copiar password\nCopiar usuario (user)\nVisualizar (terminal)\n' |
     rofi -dmenu -p "$ENTRY" -theme "$T" 2>/dev/null)
 
 case "$mode" in
-    *password*) pass show -c -- "$ENTRY" 2>/dev/null ;;
+    *password*) pass show -c "$ENTRY" 2>/dev/null ;;
     *usuario*)  pass show "$ENTRY" | grep -m1 '^user' | cut -d: -f2 | xclip -selection clipboard ;;
     *Visualizar*)
-        # terminal para elegir entrada del secret
-        NODE=$(bspc query -N -n focused 2>/dev/null)
-        alacritty -e sh -c "pass show -c --; echo; read -n1 -r" &
+        alacritty -e sh -c "pass show '$ENTRY'; echo; read -n1 -r -p 'Enter para cerrar' x" &
         ;;
 esac
-
-# Congela el primer clip (xclip byte)
-# usamos xclip único: pass --clip ya maneja 45s timeout.
