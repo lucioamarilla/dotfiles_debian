@@ -1,5 +1,12 @@
 # CHANGELOG — dotfiles_debian
 
+## v2.0.2 (fixes reportados en VM limpia)
+- FIX clone_repositories idempotente: re-clona/actualiza si el destino ya existe (el `[ERROR] Clonando Qogir + p10k` en re-runs)
+- FIX install_packages: propaga el exit code real de apt (fin del case-masking que pintaba de verde installs fallidos)
+- FIX apt list: `python3-bs4` re-unido a la lista (estaba suelto sin `\` → jamás se instalaba)
+- NEW apt_with_retry: si el lock de apt está ocupado (unattended-upgrades post-boot), reintenta 3×/30s; otros errores pasan visibles
+- FIX post_verify dedupe: checklist único (16 checks, sin repetidos)
+
 ## v2.0.1 (auditoría + fixes VM reportados)
 - FIX perms: `chmod -R` para todo `~/.config/bin/scripts` (music/net_config/color_picker ahora ejecutables — "Permission denied" del boot resuelto)
 - FIX `ifconfig` → `ip` nativo en my_ip.sh, get_interface.sh, copy_ip.sh (sin net-tools)

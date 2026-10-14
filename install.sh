@@ -122,9 +122,35 @@ system_update() {
     sudo apt-get -qy autoremove
 }
 
+apt_with_retry() {
+    # anti-lock: si unattended-upgrades/otros apt tienen el lock (fresca boot),
+    # reintenta 3× cada 30s; otros errores de apt pasan directo (visibles).
+    local n=0 out
+    while : ; do
+        if out=$(sudo env DEBIAN_FRONTEND=noninteractive "$@" 2>&1); then
+            printf '%s\n' "$out" | tail -2
+            return 0
+        fi
+        if printf '%s\n' "$out" | grep -qiE "could not get lock|mutex|lock-frontend|dpkg.*broken"; then
+            n=$((n + 1))
+            if [ "$n" -ge 3 ]; then
+                printf '%s\n' "$out" | tail -6
+                return 1
+            fi
+            echo "${y}[apt] lock ocupado — reintento ${n}/3 en 30s...${reset}"
+            sleep 30
+        else
+            printf '%s\n' "$out" | tail -8
+            return 1
+        fi
+    done
+}
+
 install_packages() {
     local distro=$1
-    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+    local rc=0
+
+    apt_with_retry apt-get install -y -qq \
         bspwm sxhkd polybar rofi picom feh scrot dunst kitty zsh \
         zsh-autosuggestions zsh-syntax-highlighting \
         adwaita-icon-theme xclip numlockx xdotool lsd \
@@ -136,16 +162,18 @@ install_packages() {
         neovim thunar thunar-archive-plugin tumbler \
         blueman bluez network-manager network-manager-gnome wpasupplicant \
         pipewire pipewire-pulse wireplumber pulseaudio-utils \
-        clipmenu cava xdo xdg-user-dirs curl gawk python3 python3-pip
-        python3-bs4
+        clipmenu cava xdo xdg-user-dirs curl gawk python3 python3-pip \
+        python3-bs4 || rc=$?
 
     case "$distro" in
-        kali)  sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libdbusmenu-gtk3-4 ;;
-        parrot) sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
-                 libatk1.0-dev libatk-bridge2.0-dev libatspi2.0-dev \
-                 libglib2.0-dev libpango1.0-dev libjson-glib-dev \
-                 libwayland-dev libwebp-dev ;;
+        kali)   apt_with_retry apt-get install -y -qq libdbusmenu-gtk3-4 || rc=$? ;;
+        parrot) apt_with_retry apt-get install -y -qq \
+                  libatk1.0-dev libatk-bridge2.0-dev libatspi2.0-dev \
+                  libglib2.0-dev libpango1.0-dev libjson-glib-dev \
+                  libwayland-dev libwebp-dev || rc=$? ;;
     esac
+
+    return $rc
 }
 
 install_laptop_power() {
@@ -163,9 +191,22 @@ install_laptop_power() {
 }
 
 clone_repositories() {
+    # idempotente: si ya hay clon válido → actualizar; si está roto/medio → re-clonar
     mkdir -p ~/github
-    git clone -q https://github.com/vinceliuice/Qogir-icon-theme.git ~/github/Qogir-icon-theme
-    git clone -q --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.powerlevel10k
+
+    if [ -d ~/github/Qogir-icon-theme/.git ]; then
+        git -C ~/github/Qogir-icon-theme pull -qff 2>/dev/null || true
+    else
+        rm -rf ~/github/Qogir-icon-theme
+        git clone -q https://github.com/vinceliuice/Qogir-icon-theme.git ~/github/Qogir-icon-theme || return 1
+    fi
+
+    if [ -d ~/.powerlevel10k/.git ]; then
+        git -C ~/.powerlevel10k pull -qff 2>/dev/null || true
+    else
+        rm -rf ~/.powerlevel10k
+        git clone -q --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.powerlevel10k || return 1
+    fi
 }
 
 install_icons_font_build() {
@@ -299,9 +340,6 @@ post_verify() {
     check_item "scripts ~/.config/bin"  "[ -x $HOME/.config/bin/scripts/ScreenLocker ]"
     check_item "fonts HNF instaladas"   "fc-list | grep -qi 'nerd'"
     check_item "zsh default user"       "[ \"\$(getent passwd \$USER | cut -d: -f7)\" = /usr/bin/zsh ]"
-    check_item "cava (polybar)"          "command -v cava"
-    check_item "xdo (ScrathPad)"         "command -v xdo"
-    check_item "music/net scripts +x"    "[ -x $HOME/.config/bin/scripts/music/artist.sh ]"
     echo -e "\n ${g}$ok ok${reset} / ${r}$bad faltantes${reset}"
     [ "$bad" -gt 0 ] && return 1
     return 0
