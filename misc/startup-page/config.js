@@ -11,30 +11,30 @@ const CONFIG = {
 	// └─┘┴ ┴└─┘┴└─┘└─┘
 
 	// General
-	name: 'gh0stzk',
+	name: 'lucioamarilla',
 	imageBackground: false,
 	openInNewTab: true,
 	twelveHourFormat: true,
-	timeZone: 'America/Mexico_City',
+	timeZone: 'America/Argentina/Buenos_Aires',
 
 	// Greetings
-	greetingMorning: 'Good morning!',
-	greetingAfternoon: 'Good afternoon,',
-	greetingEvening: 'Good evening,',
-	greetingNight: 'Go to Sleep!',
+	greetingMorning: 'Buenos días!',
+	greetingAfternoon: 'Buenas tardes,',
+	greetingEvening: 'Buenas noches,',
+	greetingNight: 'Andá a dormir!',
 
 	// Layout
 	bentoLayout: 'lists', // 'bento', 'lists', 'buttons'
 
 	// Weather
-	weatherKey: '8b05d62206f459e1d298cbe5844d7d87', // Write here your API Key
+	weatherKey: '', // Opcional: si vacía, el widget no se llama a la API
 	weatherIcons: 'OneDark', // 'Onedark', 'Nord', 'Dark', 'White'
 	weatherUnit: 'C', // 'F', 'C'
-	language: 'en', // More languages in https://openweathermap.org/current#multi
+	language: 'es', // More languages in https://openweathermap.org/current#multi
 
 	trackLocation: true, // If false or an error occurs, the app will use the lat/lon below
-	defaultLatitude: '19.593',
-	defaultLongitude: '-99.250',
+	defaultLatitude: '',
+	defaultLongitude: '',
 
 	// Autochange
 	autoChangeTheme: false,
@@ -84,7 +84,7 @@ const CONFIG = {
 		},
 		{
 			id: '6',
-			name: 'YouYube',
+			name: 'Odysee',
 			icon: 'youtube',
 			link: 'https://odysee.com/',
 		},
@@ -93,37 +93,37 @@ const CONFIG = {
 	secondButtonsContainer: [
 		{
 			id: '1',
-			name: 'z0mbi3',
+			name: 'Spotify',
 			icon: 'headphones',
 			link: 'https://open.spotify.com',
 		},
 		{
 			id: '2',
-			name: 'z0mbi3',
+			name: 'X (Twitter)',
 			icon: 'twitter',
 			link: 'https://twitter.com/',
 		},
 		{
 			id: '3',
-			name: 'z0mbi3',
+			name: 'Discord',
 			icon: 'bot',
 			link: 'https://discord.com/app',
 		},
 		{
 			id: '4',
-			name: 'z0mbi3',
+			name: 'Amazon',
 			icon: 'shopping-bag',
 			link: 'https://amazon.com/',
 		},
 		{
 			id: '5',
-			name: 'z0mbi3',
+			name: 'Hashnode',
 			icon: 'pen-tool',
 			link: 'https://hashnode.com/',
 		},
 		{
 			id: '6',
-			name: 'z0mbi3',
+			name: 'Figma',
 			icon: 'figma',
 			link: 'https://figma.com/',
 		},
@@ -140,12 +140,12 @@ const CONFIG = {
 			id: '1',
 			links: [
 				{
-					name: 'gh0stzk dotfiles',
-					link: 'https://github.com/gh0stzk/dotfiles',
+					name: 'dotfiles_debian',
+					link: 'https://github.com/lucioamarilla/dotfiles_debian',
 				},
 				{
-					name: 'Arch Linux',
-					link: 'https://archlinux.org/',
+					name: 'Debian',
+					link: 'https://www.debian.org/',
 				},
 				{
 					name: 'ChatGPT',

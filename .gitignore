@@ -1,0 +1,14 @@
+# Runtime / estado local — se generan dentro de ~/.config al usarse
+config/zsh/zhistory
+config/zsh/zcompdump
+config/mpd/mpd.db
+config/mpd/mpdstate
+config/mpd/log
+config/ncmpcpp/error.log
+
+# Respaldo del installer
+.RiceBackup/
+
+# Vim / editor
+*.swp
+*~

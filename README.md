@@ -81,7 +81,7 @@ Después: `sudo reboot` → LightDM → sesión **bspwm**.
 install.sh     ← installer v3 (spinner + confirmaciones apt + backups ~/.RiceBackup)
 config/        ← árbol gh0stzk completo, patched Debian (14 archivos ver CHANGELOG)
 home/.zshrc    ← zsh gh0stzk (prompt vcs_info, fzf-tab vendored, plugins apt)
-misc/          ← fonts bundle, asciiart (sysfetch), colorscript, firefox theme
+misc/          ← fonts bundle, colorscript (art ascii personal, ver abajo), firefox theme
 RiceInstaller  ← REMOVIDO: era Arch-only (ver install.sh)
 LICENSE        ← GPL-3.0 (gh0stzk) — nuestras modificaciones documentadas en CHANGELOG
 ```
@@ -92,6 +92,37 @@ LICENSE        ← GPL-3.0 (gh0stzk) — nuestras modificaciones documentadas en
 - ghostty / st: Term autoseleciona lo instalado
 - simple-mtpfs: gvfs-backends cubre MTP en thunar
 - pentest: nada de herramientas de ciberseguridad (decisión del usuario)
+
+## ASCII art en la terminal (opcional, arte propio)
+
+El arte random upstream (pizza/mario/pacman...) se removió v3.0.0.3. Para
+colocar el tuyo —valen los mismos tamaños que da `colorscript -l`:
+
+1. `~/.local/share/asciiart/<nombre>` (sin extensión), formato mínimo:
+   ```sh
+   #!/bin/sh
+   cat <<EOF
+   ...tu arte...
+   EOF
+   ```
+   más `chmod +x`.
+2. Probar: `~/.local/bin/colorscript -e <nombre>` · listar: `colorscript -l`
+3. Activar al abrir terminal: descomentar en `~/.zshrc`
+   `~/.local/bin/colorscript -r` (random) o `-e <nombre>` (fijo).
+
+Restricciones de tamaño: **≤ 80 columnas** (ideal 60–70, 1 carácter = 1 celda)
+y **≤ 18–20 líneas** (ventana default ~24 filas). Solo caracteres de ancho
+simple — nada de emoji/CJK. Truco: duplica tus artes en `misc/asciiart/` del
+repo para que sobrevivan a reinstalaciones (install.sh los re-copia).
+
+## Timer de updates
+
+`systemd/user/DebianUpdates.{service,timer}` chequea apt cada 15 min y pinta
+el contador en el módulo `updates` de polybar. Activación manual (una vez):
+
+```bash
+systemctl --user enable --now DebianUpdates.timer
+```
 
 ## Troubleshooting
 

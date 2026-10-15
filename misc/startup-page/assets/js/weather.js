@@ -16,7 +16,14 @@ var tempUnit = CONFIG.weatherUnit;
 
 const KELVIN = 273.15;
 const key = `${CONFIG.weatherKey}`;
-setPosition();
+
+// Sin API key: ocultar el widget y no pedir nada a OpenWeather.
+if (!key) {
+	const weatherCard = document.querySelector('.weather');
+	if (weatherCard) weatherCard.style.display = 'none';
+} else {
+	setPosition();
+}
 
 function setPosition(position) {
 	if (!CONFIG.trackLocation || !navigator.geolocation) {

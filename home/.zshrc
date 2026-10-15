@@ -1,6 +1,6 @@
-#  ╔═╗╔═╗╦ ╦╦═╗╔═╗  ╔═╗╔═╗╔╗╔╔═╗╦╔═╗	- z0mbi3
-#  ╔═╝╚═╗╠═╣╠╦╝║    ║  ║ ║║║║╠╣ ║║ ╦	- https://github.com/gh0stzk/dotfiles
-#  ╚═╝╚═╝╩ ╩╩╚═╚═╝  ╚═╝╚═╝╝╚╝╚  ╩╚═╝	- My zsh conf
+#  ┌─┐┬  ┬┌─┐┌─┐┌┐┌  - lucioamarilla
+#  ├─┤│  │├─┤└─┐│││  - https://github.com/lucioamarilla/dotfiles_debian
+#  ┴ ┴┴─┘┴┴ ┴└─┘┘└┘  - zsh conf · base gh0stzk @8b3cd66, port Debian 13
 
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
@@ -14,7 +14,7 @@ export BROWSER='firefox'
 export FILEMANAGER='thunar'
 export IMGVIEWER='viewnior'
 export HISTORY_IGNORE="(ls|cd|pwd|exit|sudo reboot|history|cd -|cd ..)"
-export SUDO_PROMPT="Deploying root access for %u. Password pls: "
+export SUDO_PROMPT="Contraseña para %u: "
 export BAT_THEME="base16"
 
 if [ -d "$HOME/.local/bin" ] ;
@@ -110,7 +110,7 @@ function dir_icon {
   fi
 }
 
-PS1='%B%F{blue}%f%b  %B%F{magenta}%n%f%b $(dir_icon)  %B%F{red}%~%f%b${vcs_info_msg_0_} %(?.%B%F{green}.%F{red})%f%b '
+PS1='%B%F{blue}%f%b  %B%F{magenta}%n%f%b $(dir_icon)  %B%F{red}%~%f%b${vcs_info_msg_0_} %(?.%B%F{green}.%F{red})%f%b '
 
 #  ┌─┐┬  ┬ ┬┌─┐┬┌┐┌┌─┐
 #  ├─┘│  │ ││ ┬││││└─┐
@@ -147,8 +147,8 @@ fi
 #  ┌─┐┬  ┬┌─┐┌─┐
 #  ├─┤│  │├─┤└─┐
 #  ┴ ┴┴─┘┴┴ ┴└─┘
-# alias mirrors (Arch-only reflector, removed v3 Debian port)
-alias update="paru -Syu --nocombinedupgrade"
+# alias update: apt (Debian) — el alias anterior era paru (Arch upstream)
+alias update="sudo apt update && sudo apt upgrade -y"
 alias grub-update="sudo grub-mkconfig -o /boot/grub/grub.cfg"
 
 alias music="ncmpcpp"
@@ -160,5 +160,33 @@ alias ll='eza --icons=always --color=always -la'
 #  ┌─┐┬ ┬┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┬─┐┌┬┐
 #  ├─┤│ │ │ │ │  └─┐ │ ├─┤├┬┘ │
 #  ┴ ┴└─┘ ┴ └─┘  └─┘ ┴ ┴ ┴┴└─ ┴
-$HOME/.local/bin/colorscript -r
+#  ┌─┐┬─┐┬ ┬┌┐┌  ┌─┐┌┐┌┌─┐┬┌┐┌┌─┐┬  ┌─┐
+#  ├─┤├─┘│││││  │  └─┐
+#  ┴ ┴┴  └─┘┘└┘  └─┘ └─┘
+#
+# Arte ASCII al abrir la terminal — DESACTIVADO (era el colorscript -r
+# random de gh0stzk: pizza, mario, pacman...). Para poner el tuyo:
+#
+#   1) Guarda tu arte:   ~/.local/share/asciiart/<nombre>   (sin extensión)
+#   2) Ejecutable:       chmod +x ~/.local/share/asciiart/<nombre>
+#   3) Formato mínimo:
+#        #!/bin/sh
+#        cat <<EOF
+#        ...tu arte...
+#        EOF
+#   4) Prueba sin tocar el zshrc:   ~/.local/bin/colorscript -e <nombre>
+#      Lista los instalados:        ~/.local/bin/colorscript -l
+#   5) Activa al arrancar (descomenta UNA):
+#        ~/.local/bin/colorscript -r          # uno al azar
+#        ~/.local/bin/colorscript -e <nombre> # uno fijo
+#
+#   Tamaños para que no se rompa la terminal:
+#   - Ancho ≤ 80 columnas (ideal 60–70): 1 carácter = 1 celda; si excede el
+#     ancho de la ventana, se corta y rompe la alineación.
+#   - Alto  ≤ 18–20 líneas: ventanas default ~24 filas; más alto empuja
+#     el contenido hacia arriba y tapa el prompt.
+#   - Caracteres SOLO de ancho simple (█ ▄ ▀ ░ ▓ ASCII, box-drawing).
+#     Emoji/CJK ocupan 2 celdas y desalinean el arte y las líneas.
+#   - Colores: ANSI básicos o \e[38;5;Nm / truecolor, como en cualquier script.
+#
 #disable-fzf-tab
