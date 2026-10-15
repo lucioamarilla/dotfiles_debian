@@ -103,7 +103,7 @@ apt_with_retry() {
 system_update() {
     apt_with_retry apt-get -qq update
     apt_with_retry apt-get -qy upgrade
-    apt_with_retry autoremove -qy
+    apt_with_retry apt-get autoremove -qy
 }
 
 install_core() {
