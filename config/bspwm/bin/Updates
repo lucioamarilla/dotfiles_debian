@@ -1,0 +1,79 @@
+#!/bin/sh
+# =============================================================
+# Author: gh0stzk (port Debian by lucioamarilla)
+# Repo:   https://github.com/lucioamarilla/dotfiles_debian
+#
+# Updates - Script to check for new updates (apt / Debian)
+#           and sync updates module in polybar.
+# Features:
+#   ✔ Shows the number of updates in polybar (Updates module)
+#   ✔ Cache file compatible with gh0stzk's Updates module
+#   ✔ list mode colored (kitty/terminal agnostic)
+#
+# Dependencies: polybar, xdg cache dir
+# =============================================================
+
+UPDATE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/Updates.txt"
+
+# Sync bars when needed.
+sync_bars() {
+    local current_rice current_bar
+
+    if pgrep -x polybar >/dev/null; then
+        polybar-msg action updates hook 0 >/dev/null 2>&1
+    fi
+}
+
+get_updates() {
+    sudo -n apt-get -q update >/dev/null 2>&1 \
+        || { apt-get -q update >/dev/null 2>&1; }  # solo si la cache esta fresca
+    official_updates=$(apt list --upgradable 2>/dev/null | sed 1d)
+
+    total=0
+    [ -n "$official_updates" ] && total=$(printf '%s\n' "$official_updates" | wc -l)
+}
+
+# Persist the last successful result (count) and sync bars
+persist_results() {
+    printf '%s\n' "$total" > "$UPDATE_FILE"
+    sync_bars
+}
+
+check_updates() {
+    get_updates && persist_results
+}
+
+list_updates() {
+    if get_updates; then
+        persist_results
+        offline=0
+    else
+        total=$(cat "$UPDATE_FILE" 2>/dev/null)
+        offline=1
+    fi
+
+    total=${total:-0}
+
+    if [ "$total" -gt 0 ]; then
+        printf "\033[1m\033[33mThere are %s updates available:\033[0m\n" "$total"
+        if [ "$offline" -eq 1 ]; then
+            printf "\n\033[1m\033[31mNo internet connection.\033[0m\n"
+        else
+            printf "\n\033[1m\033[34mOfficial updates:\033[0m\n"
+            printf '%s\n' "$official_updates" | awk '{print $1"/"$2}'
+        fi
+    else
+        if [ "$offline" -eq 1 ]; then
+            printf "\033[1m\033[31mNo internet connection.\033[0m\n"
+        else
+            printf "\033[1m\033[32mYour system is already updated!\033[0m\n"
+        fi
+    fi
+}
+
+case "$1" in
+    --list)     list_updates; exit 0 ;;
+    --count)    check_updates; cat "$UPDATE_FILE" 2>/dev/null; exit 0 ;;
+    --sync)     check_updates; exit 0 ;;
+    *)          check_updates
+esac

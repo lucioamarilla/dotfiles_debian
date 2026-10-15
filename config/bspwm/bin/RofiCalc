@@ -1,0 +1,24 @@
+#!/bin/sh
+# =============================================================
+# RofiCalc — calculadora rofi (JaKoolit RofiCalc port)
+# apt: rofi, qalculate, xclip
+# =============================================================
+
+T="$HOME/.config/rofi/themes/config.rasi"
+HIST="$HOME/.cache/rofi-calc.history"
+touch "$HIST" 2>/dev/null
+
+while true; do
+    hist=""
+    [ -s "$HIST" ] && hist=$(tac "$HIST" | head -n 5)
+    q=$( { echo "$hist"; echo "✕ salir"; } | rofi -dmenu -p "qalc" -theme "$T" 2>/dev/null)
+    [ -z "$q" ] && exit 0
+    case "$q" in *salir*) exit 0 ;; esac
+
+    res=$(qalc --color=never -t 4 "$q" 2>/dev/null)
+    echo "$q = $res" >> "$HIST"
+    printf '%s' "$res" | xclip -selection clipboard 2>/dev/null
+    rofi -e "$q
+= $res
+(copiado al portapapeles)" -theme "$T" 2>/dev/null || exit 0
+done

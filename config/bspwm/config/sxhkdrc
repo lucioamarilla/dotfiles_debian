@@ -1,0 +1,354 @@
+#────────────────────────────────────────────────────────
+#    sxhkdrc — Dotfiles Debian (BSPWM + X11) v3
+#
+#  Base    : gh0stzk/dotfiles (structure, bins, apps)
+#  Capa    : comandos de JaKoolit (Ubuntu-Hyprland) portados
+#  Extras  : gh0stzk best-of (bar selector, rices, scratchpad…)
+#
+#  Recargar sxhkd    : super + Escape
+#  Cheatsheet        : alt + F1  (rofi, parsea este archivo)
+#  Sin herramientas de pentest — daily driver.
+#────────────────────────────────────────────────────────
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  _  TERMINALES (gh0stzk Term)
+#────────────────────────────────────────────────────────
+
+# Terminal (alacritty/kitty — selector guardado)
+super + Return
+	Term --terminal
+
+# Terminal flotante dropdown (JaKoolit: super+Shift+Return)
+super + shift + Return
+	Term --floating
+
+# Selector de terminal (rofi, aplica y persiste)
+super + alt + t
+	Term --selecterm
+
+# Scratchpad de gh0stzk (Bspwm-ScratchPad)
+super + alt + o
+	OpenApps --scratch
+
+# ── Uso normal de gh0stzk para dropdowns
+# (gh original: super+alt+Return) — conservado:
+super + alt + Return
+	Term --floating
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  LANZADORES Y MENÚS (OpenApps/rofi)
+#────────────────────────────────────────────────────────
+
+# App launcher (gh: OpenApps --menu; JaKoolit: super+D)
+super + @space ; super + d
+	OpenApps --menu
+
+# Browsers/apps directos (gh0stzk mappings)
+super + b
+	OpenApps --browser
+
+super + e
+	OpenApps --filemanager
+
+super + t
+	OpenApps --telegram
+
+super + w
+	OpenApps --whats
+
+# طراحی rice selector (gh0stzk: alt+space — JaKoolit equivalente tema)
+alt + @space
+	RiceSelector
+
+# Bar selector (gh0stzk: super+alt+space)
+super + alt + @space
+	BarSelector
+
+# Power menu (gh: super+alt+p — JaKoolit: ctrl+alt+P)
+super + alt + p
+	OpenApps --powermenu
+ctrl + alt + p
+	OpenApps --powermenu
+
+# Búsqueda web (JaKoolit: super+S — gh puede super+s editor? libre: usamos rofi search propio)
+super + s
+	xdg-open "https://duckduckgo.com"  2>/dev/null || xdg-open "https://"
+
+# Calculadora (JaKoolit: super+alt+C, OpenApps qalc-less)
+super + alt + c
+	OpenApps --calculator
+
+# Emoji picker (JaKoolit: super+alt+E)
+super + alt + e
+	Rofimoji
+
+# Clipboard: rofi menu (clipmenu — reemplaza clipcat)
+super + alt + v
+	OpenApps --clipboard
+
+# Network Manager (gh: super+alt+n)
+super + alt + n
+	OpenApps --netmanager
+
+# Bluetooth (gh: super+alt+b)
+super + alt + b
+	OpenApps --bluetooth
+
+# Panel notificaciones dunst (JaKoolit: super+Shift+N)
+super + shift + n
+	~/.config/bspwm/bin/DunstPanel
+
+# Wallpapers: selector (gh: super+alt+w — JaKoolit: super+W)
+super + alt + w
+	OpenApps --wallpaper
+
+# Wallpapers: downloader (gh: super+alt+d = AnimatedWall menu? libre: uso WallSelect)
+super + alt + d
+	WallSelect
+
+# Screenshot menu (gh: Print)
+@Print
+	OpenApps --screenshot
+
+# Screenshot área (JaKoolit: super+Print --area)
+super + Print
+	ScreenShoTer --area 2>/dev/null || OpenApps --screenshot
+
+# Screenshot heleos anotación (flameshot — JaKoolit: super+shift+S)
+super + shift + s
+	flameshot gui
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  _  APPS BASE
+#────────────────────────────────────────────────────────
+
+# Editor (gh: super+shift+e; JaKoolit super+E? en gh0stzk f... super+shift+e) — thunar+geany
+super + shift + e
+	OpenApps --editor
+
+# Yazi / ranger (gh: super+y)
+super + y
+	OpenApps --yazi
+
+# Neovim (gh: super+v)
+super + v
+	OpenApps --nvim
+
+# Ncmpcpp música (gh: super+m)
+super + m
+	OpenApps --music
+
+# Pavucontrol (gh: super+p)
+super + p
+	pavucontrol
+
+# Updates en terminal (port apt)
+super + alt + shift + u
+	kitty --class=Updating -e Updates --list
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  SISTEMA
+#────────────────────────────────────────────────────────
+
+# Recargar entornos (gh: super+alt+r)
+super + alt + r
+	SoftReload
+
+# Recargar sxhkd (gh: super+Escape)
+super + Escape
+	pkill -USR1 -x sxhkd; dunstify -u low -t 1500 'sxhkd' 'Keybinds recargados'
+
+# Lock screen (gh: ctrl+super+alt+l — JaKoolit: ctrl+alt+L)
+ctrl + alt + l
+	ScreenLocker
+ctrl + super + alt + l
+	ScreenLocker
+
+# Apagado / reset (gh: ctrl+super+alt+P/R) — JaKoolit alias
+ctrl + super + alt + p
+	systemctl poweroff
+ctrl + super + alt + r
+	systemctl reboot
+
+# Salir sesión (gh: ctrl+super+alt+Q)
+ctrl + super + alt + q
+	bspc quit
+
+# sesión bspwm quit (link JaKoolit ctrl+alt+Delete)
+ctrl + alt + Delete
+	bspc quit
+
+# Layout teclado (gh: super+alt+k)
+super + alt + k
+	OpenApps --keyboard
+
+# RiceEditor (gh: super+r)
+super + r
+	RiceEditor
+
+# Barra polybar hide/unhide (gh: super+alt+h/u — JaKoolit: ctrl+alt+b toggle)
+super + alt + h
+	HideBar -h
+super + alt + u
+	HideBar -u
+ctrl + alt + b
+	HideBar -t
+
+#────────────────────────────────────────────────────────
+#    _  _  _  _  VENTANAS — ESTADOS (gh0stzk base + JAK)
+#────────────────────────────────────────────────────────
+
+# Cerrar / matar (gh: super+x / super+shift+x — JaKoolit: super+Q)
+super + {_,shift + }x
+	bspc node -{c,k}
+super + q
+	bspc node -c
+super + shift + q
+	bspc node -k
+
+# Fullscreen (gh: super+shift+f? YaKoolit super+F)
+super + f
+	bspc node -t '~fullscreen'
+
+# Float toggle (JaKoolit: super+Space — gh: super+space? ya existe: super+shirt+a float)
+super + space
+	bspc node -t '~floating'
+
+# Pseudotiled (gh: super+shift+t)
+super + shift + p
+	bspc node -t '~pseudo_tiled'
+
+# Tiled (gh: super+shift+t)
+super + shift + t
+	bspc node -t tiled
+
+# Rotar desktop (gh: super+slash)
+super + slash
+	bspc node @parent -R 90
+
+# Balancear (gh: super+equal)
+super + equal
+	bspc node @/ -B
+
+# Mover todas flt casitás (JaKoolit: super+alt+Space)
+super + alt + space
+	~/.config/bspwm/bin/WinFloat --desktop 2>/dev/null || \
+		bspc query -N -d focused -n .tiled | xargs -rI{} bspc node {} -t floating
+
+#────────────────────────────────────────────────────────
+#   _  _  _  FOCUS / MOVE / SWAP / RESIZE (JAK es exacto)
+#────────────────────────────────────────────────────────
+
+# Focus dirección (ambos: super+arrows)
+super + {Left,Down,Up,Right}
+	bspc node -f {west,south,north,east}.!sticky.!hidden.local
+
+# Swap (gh0stzk: super+shift+arrows — JaKoolit: super+alt+arrows)
+super + shift + {Left,Down,Up,Right}
+	bspc node -s {west,south,north,east}.local
+super + alt + {Left,Down,Up,Right}
+	bspc node -z {right -40 0,bottom 0 40,bottom 0 -40,right 40 0}
+
+# Mover flotante (gh: super+ctrl+arrows? JaKoolit: super+ctrl+arrows)
+super + ctrl + {Left,Down,Up,Right}
+	bspc node -v {-40 0,0 40,0 -40,40 0}
+
+# Focus arrows por j/k rm — fusion (gh0stzk: super+{j,k})
+super + {j,k}
+	bspc node -f {next,prev}.local.!hidden
+
+# Último nodo/desktop (gh: super+{o,i})
+super + {o,i}
+	bspc node -f last
+super + shift + {o,i}
+	bspc desktop -f last
+
+# Window switcher rofi (gh0stzk original — alt+Tab cíclico)
+alt + Tab
+	rofi \
+		-theme $HOME/.config/bspwm/config/rofi-themes/Windows.rasi \
+		-show window -window-thumbnail \
+		-window-hide-active-window true \
+		-kb-accept-entry "!Alt-Tab,Return" \
+		-kb-element-next "Alt-Tab" 
+
+# Ocultar/restaurar (gh: alt+h / ctrl+alt+h —JaKoolit super+U equivalente)
+alt + h
+	HideNode --hide
+ctrl + alt + h
+	HideNode --menu
+
+#────────────────────────────────────────────────────────
+#    ____  _  WORKSPACES (JaKoolit idéntico + gh0stzk)
+#────────────────────────────────────────────────────────
+
+# Ir a desktop 1-0 (ambos)
+super + {1-9,0}
+	bspc desktop -f '^{1-9,10}'
+
+# Mover y seguir (JaKoolit: super+shift+1-0)
+super + shift + {1-9,0}
+	bspc node -d '^{1-9,10}' --follow
+
+# Mover sin seguir (JaKoolit: super+ctrl+1-0)
+super + ctrl + {1-9,0}
+	bspc node -d '^{1-9,10}'
+
+# Desktop next/prev (gh: super+Tab)
+super + Tab
+	bspc desktop -f next
+super + shift + Tab
+	bspc desktop -f prev
+
+# Scroll de desktops (gh0stzk super+button? JaKoolit rueda)
+super + button{4,5}
+	bspc desktop -f {prev,next}
+
+#────────────────────────────────────────────────────────
+#    ____  _  HARDWARE (XF86 — ThinkPad)
+#────────────────────────────────────────────────────────
+
+# Volúmen (gh0stzk Volume: --inc/--dec/--toggle ✓ pactl-port)
+XF86Audio{RaiseVolume,LowerVolume,Mute}
+	Volume {--inc,--dec,--toggle}
+
+# Fallback volumen sin Fn
+super + alt + {minus,plus,equal}
+	Volume {--dec,--inc,--toggle}
+
+# Micrófono
+XF86AudioMicMute
+	Volume --mic
+
+# Brillo (gh0stzk Brightness ✓)
+XF86MonBrightness{Up,Down}
+	sh Brightness {up,down}
+
+# Media (gh0stzk MediaControl — playerctl ✓)
+XF86Audio{Next,Prev,Play,Pause,Stop}
+	MediaControl {--next,--previous,--toggle,--toggle,--stop}
+
+# Media sin XF86 (JAK)
+super + shift + bracketright
+	MediaControl --next
+super + shift + bracketleft
+	MediaControl --previous
+
+# Sleep (gh0stzk XF86Sleep ✓ sus brillo keys?)
+XF86Sleep
+	systemctl suspend
+
+# Modo avión (wifi toggle inline)
+XF86WLAN
+	nmcli radio wifi $(nmcli radio wifi | awk '$1=="enabled"{print "off";exit}{print "on";exit}')
+
+# Transparencia (gh0stzk: ctrl+alt+plus/minus/t picom-trans)
+ctrl + alt + {plus,minus,t}
+	picom-trans -c {+3,-3,} 2>/dev/null || picom-trans -c -d
+
+#────────────────────────────────────────────────────────
+#    _  _  _  ROFI APPLETS (tan estilo gh0stzk)
+
+# Pass manager (gh: super+alt+x)
+super + alt + x
+	OpenApps --pass
