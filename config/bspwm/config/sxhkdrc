@@ -39,8 +39,8 @@ super + alt + Return
 #    _  _  _  _  LANZADORES Y MENÚS (OpenApps/rofi)
 #────────────────────────────────────────────────────────
 
-# App launcher (gh: OpenApps --menu; JaKoolit: super+D)
-super + @space ; super + d
+# App launcher (gh: OpenApps --menu; JaKoolit: super+D — bind plano)
+super + d
 	OpenApps --menu
 
 # Browsers/apps directos (gh0stzk mappings)
@@ -74,9 +74,9 @@ ctrl + alt + p
 super + s
 	xdg-open "https://duckduckgo.com"  2>/dev/null || xdg-open "https://"
 
-# Calculadora (JaKoolit: super+alt+C, OpenApps qalc-less)
+# Calculadora (JaKoolit: super+alt+C — RofiCalc con qalc de libqalculate)
 super + alt + c
-	OpenApps --calculator
+	RofiCalc
 
 # Emoji picker (JaKoolit: super+alt+E)
 super + alt + e
@@ -98,11 +98,12 @@ super + alt + b
 super + shift + n
 	~/.config/bspwm/bin/DunstPanel
 
-# Wallpapers: selector (gh: super+alt+w — JaKoolit: super+W)
+# Wallpapers: selector (gh: super+alt+w = WallSelect directo, igual upstream)
 super + alt + w
-	OpenApps --wallpaper
+	WallSelect
 
-# Wallpapers: downloader (gh: super+alt+d = AnimatedWall menu? libre: uso WallSelect)
+# Wallpapers: alias cómodo (el selector está en super+alt+w); el replicado
+# real es `AnimatedWall --start <video>.mp4` (xwinwrap+mpv, degrada con warn)
 super + alt + d
 	WallSelect
 
@@ -142,9 +143,9 @@ super + m
 super + p
 	pavucontrol
 
-# Updates en terminal (port apt)
+# Updates en terminal (Term respeta el selector de terminal; v4:* print-updates fixed)
 super + alt + shift + u
-	kitty --class=Updating -e Updates --list
+	Term --checkupdates
 
 #────────────────────────────────────────────────────────
 #    _  _  _  _  SISTEMA

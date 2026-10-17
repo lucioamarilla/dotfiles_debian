@@ -71,12 +71,24 @@ toggle_mute() {
     fi
 }
 
+# Toggle mic mute (XF86AudioMicMute — fuente de captura por defecto)
+toggle_mic() {
+    pactl set-source-mute @DEFAULT_SOURCE@ toggle
+    if [ "$(pactl get-source-mute @DEFAULT_SOURCE@ 2>/dev/null | awk '{print $2}')" = "yes" ]; then
+        get_icon muted
+        notify -i "$icon" "Mic muted"
+    else
+        notify -i icon-mic "Mic active"
+    fi
+}
+
 # Handle options
 case "$1" in
     --get)    get_volume ;;
     --inc)    adjust_volume -i 5 ;;
     --dec)    adjust_volume -d 5 ;;
     --toggle) toggle_mute ;;
+    --mic)    toggle_mic ;;
     *)
         vol=$(get_volume)
         case "$vol" in

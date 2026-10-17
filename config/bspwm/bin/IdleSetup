@@ -3,7 +3,13 @@
 # IdleSetup — autolock + DPMS (ThinkPad-friendly)
 # apt: xautolock, x11-xserver-utils
 # Uso: IdleSetup (inicio) | --toggle | --status
+# Nota: en VMs se auto-desactiva (autolock en pruebas molesta).
 # =============================================================
+
+# VMs: sin autolock (systemd-detect-virt siempre presente en Arch)
+case "$(systemd-detect-virt -v 2>/dev/null)" in
+    oracle|kvm|vmware|qemu|bochs|msvm|uml) exit 0 ;;
+esac
 
 case "$1" in
     --status|-s)

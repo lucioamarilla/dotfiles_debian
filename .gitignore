@@ -9,6 +9,9 @@ config/ncmpcpp/error.log
 # Respaldo del installer
 .RiceBackup/
 
+# Upstream vendido para comparar (zip de github.com/gh0stzk/dotfiles)
+dotfiles-master/
+
 # Vim / editor
 *.swp
 *~

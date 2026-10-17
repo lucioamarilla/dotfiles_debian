@@ -1,5 +1,34 @@
 # CHANGELOG — dotfiles_eos (rama endeavouros) / dotfiles_debian (main)
 
+## v4.0.2 (fixes del audit vs upstream 8b3cd66 + Terminal Ubuntu Edition)
+- Terminal Ubuntu Edition (pedido): ~/.zshrc ahora es oh-my-zsh + theme custom
+  agnosterzak (vendido home/agnosterzak.zsh-theme → $ZSH_CUSTOM/themes, con
+  ZSH_CUSTOM=~/.config/zsh/custom), fzf-tab vendored también como plugin OMZ
+  (custom/plugins, con guard anti doble-carga), lsd reemplaza eza en aliases y
+  previews de fzf-tab, plugins distro sourced post-omz, extras dev de Ubuntu
+  con guards (sdkman/nvm/flutter/go/kimi/kilo/spicetify/opencode,
+  code --disable-gpu). Fallback limpio si no hay OMZ.
+- pokemon-colorscripts-git (AUR; fallback fork-git) + fastfetch INSTALADOS,
+  DESACTIVADOS por defecto: bloque comentado en .zshrc con la línea exacta del
+  Ubuntu (colorscript|fastfetch --logo 10x5) + config-compact.jsonc fallback.
+  fastfetch jsonc vendidos en config/fastfetch/.
+- Audit sxhkdrc (vs upstream): bug A1 super+d era chord roto
+  `super + @space ; super + d` → bind plano `super + d → OpenApps --menu`;
+  A2 super+alt+c apuntaba a OpenApps --calculator (case inexistente) → RofiCalc;
+  A3 super+alt+w → OpenApps --wallpaper (case inexistente) → WallSelect (como
+  upstream); super+alt+shift+u kitty hardcodeada → Term --checkupdates.
+- Volume: case --mic nuevo (XF86AudioMicMute → pactl set-source-mute — el bind
+  existía pero Volume no soportaba el flag; upstream tampoco lo tenía).
+- VM hardening (post mortem de la session trabada del 17-oct): paso nuevo
+  install_vm_tools — virtualbox-guest-utils + vboxservice.service auto en VMs
+  oracle (flag --no-vbox); guard de preset: systemd-detect-virt != none +
+  --preset hw → pregunta y sugiere vm (default sí); IdleSetup hace exit 0 en
+  VMs (sin autolock en pruebas). README con sección Troubleshooting VM.
+- .gitignore: dotfiles-master/ (upstream de gh0stzk para diff manual queda
+  untracked).
+- verify: checks oh-my-zsh/theme agnosterzak/fzf-tab plugin/lsd/fastfetch/
+  pokemon-colorscripts/xautolock/qalc.
+
 ## v4.0.1 (fix: paquetes inexistentes en repos de Arch + robustez del installer)
 - Bug reportado desde VM EOS real: batch de core abortaba por targets desconocidos.
 - `qalculate` → `libqalculate` (en Arch el CLI `qalc` vive en libqalculate; el

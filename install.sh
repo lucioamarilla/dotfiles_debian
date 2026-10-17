@@ -9,14 +9,16 @@
 #   • zram-generator en vez de zram-tools · gvfs/gvfs-mtp en vez de gvfs-backends
 #   • pkgs gh0stzk instalados con pacman -U (son paquetes Arch nativos)
 #   • rice default: "endeavour" (paleta púrpura/magenta de EndeavourOS)
-#   • zsh plugins de repos oficiales (/usr/share/zsh/plugins/)
-#   • clipmenu se mantiene (repo oficial; sin AUR extra)
+#   • zsh "Ubuntu Edition": oh-my-zsh + agnosterzak + fzf-tab + lsd
+#     (pokemon-colorscripts|fastfetch instalados, desactivados por defecto)
+#   • VM: guest-utils auto + guard preset · clipmenu se mantiene (repo oficial)
 #
 #  Uso:
 #    ./install.sh                 # completo, preset autodetectado
 #    ./install.sh --preset vm     # picom xrender (VirtualBox)
 #    ./install.sh --preset hw     # glx — laptop/pc clásico (tlp + zram)
 #    ./install.sh --no-icons      # skip pack de temas de gh0stzk
+#    ./install.sh --no-vbox       # skip guest-utils VirtualBox (solo VM)
 #    ./install.sh --no-power      # skip tlp/zram (VM)
 #    ./install.sh --dry-run       # mostrar acciones sin ejecutar
 # ==============================================================================
@@ -25,7 +27,7 @@ GRN=$'\e[32m'; YLW=$'\e[33m'; RED=$'\e[31m'; BLU=$'\e[34m'; CYN=$'\e[36m'
 PUR=$'\e[38;2;127;63;191m'   # EndeavourOS purple
 MAG=$'\e[38;2;220;53;238m'   # EndeavourOS magenta
 RST=$'\e[0m'
-PRESET="auto"; NO_POWER=false; NO_ICONS=false; DRY=false; NEXT=false
+PRESET="auto"; NO_POWER=false; NO_ICONS=false; NO_VBOX=false; DRY=false; NEXT=false
 AUR_HELPER=""
 
 for arg in "$@"; do
@@ -35,6 +37,7 @@ for arg in "$@"; do
         vm|hw) [ "$NEXT" = true ] && PRESET="$arg" && NEXT=false ;;
         --no-power) NO_POWER=true ;;
         --no-icons) NO_ICONS=true ;;
+        --no-vbox) NO_VBOX=true ;;
         --dry-run) DRY=true ;;
         --help|-h) sed -n '3,22p' "$0" | sed "s/^#\s*//"; exit 0 ;;
     esac
@@ -154,6 +157,7 @@ CORE_PKGS=(
     playerctl mpc mpd mpv ncmpcpp pavucontrol lxsession redshift
     webp-pixbuf-loader papirus-icon-theme
     zsh zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
+    oh-my-zsh lsd fastfetch
     bat eza fzf brightnessctl i3lock jgmenu xsettingsd
     clipmenu flameshot unzip zstd git
     python-gobject libqalculate pacman-contrib
@@ -161,7 +165,9 @@ CORE_PKGS=(
 )
 
 # Paquetes del AUR (requieren helper — instalados después de install_core)
-AUR_PKGS=(xautolock)
+# pokemon-colorscripts-git instala el binario /usr/local/bin (así era en tu
+# Ubuntu); el fork-git es fallback si el build del original falla.
+AUR_PKGS=(xautolock pokemon-colorscripts-git)
 
 install_core() {
     pacman_wait_lock || return 1
@@ -189,8 +195,39 @@ install_aur_pkgs() {
     local missing=() p
     for p in "${AUR_PKGS[@]}"; do pkg_installed "$p" || missing+=("$p"); done
     [ ${#missing[@]} -eq 0 ] && { echo "  AUR ya al día"; return 0; }
-    pacman_wait_lock || return 1
-    "$h" -S --needed --noconfirm "${missing[@]}" 2>&1
+    for p in "${missing[@]}"; do
+        pacman_wait_lock || return 1
+        if ! "$h" -S --needed --noconfirm "$p" >/dev/null 2>&1; then
+            # fallback conocido: pokemon-colorscripts-git → fork-git
+            if [ "$p" = "pokemon-colorscripts-git" ] && ! pkg_installed pokemon-colorscripts-fork-git 2>/dev/null; then
+                echo "${YLW}[aur] $p falló → intentando pokemon-colorscripts-fork-git${RST}"
+                pacman_wait_lock || return 1
+                "$h" -S --needed --noconfirm pokemon-colorscripts-fork-git >/dev/null 2>&1 \
+                    || echo "${RED}  ✗ pokemon-colorscripts${RST} (sin pokemon art; fastfetch solo)"
+            else
+                echo "${RED}  ✗ $p${RST} (opcional)"; fi
+        fi
+    done
+    return 0
+}
+
+# Tools de la VM VirtualBox (Guest Additions): portapapeles bi-dir, resize,
+# integración de pointer —sin esto la sesión se ve 'zombie' a veces en BSPWM.
+install_vm_tools() {
+    local virt
+    virt=$(systemd-detect-virt -v 2>/dev/null || true)
+    case "$virt" in
+        ""|none) echo "[skip] no es VM" ; return 0 ;;
+        oracle)
+            if $NO_VBOX; then echo "[skip] --no-vbox"; return 0; fi
+            pacman_wait_lock || return 1
+            pacman_install virtualbox-guest-utils || { echo "${RED}  ✗ virtualbox-guest-utils${RST}"; return 0; }
+            sudo systemctl enable --now vboxservice.service 2>/dev/null || true
+            echo "  guest-utils + vboxservice activos"
+            ;;
+        *)  echo "[skip] virt=$virt (no virtualbox — guest-utils de esa hipervisor)" ;;
+    esac
+    return 0
 }
 
 install_power() {
@@ -293,6 +330,17 @@ install_configs() {
     cp -r "$dir/misc/applications/." "$HOME/.local/share/applications/" 2>/dev/null
     cp "$dir/home/.zshrc" "$HOME/.zshrc"
 
+    # ── Terminal Ubuntu Edition: oh-my-zsh custom + fastfetch ──
+    ZSH_CUSTOM="$HOME/.config/zsh/custom"
+    mkdir -p "$ZSH_CUSTOM/themes" "$ZSH_CUSTOM/plugins" "$CFG/fastfetch"
+    cp "$dir/home/agnosterzak.zsh-theme" "$ZSH_CUSTOM/themes/agnosterzak.zsh-theme" 2>/dev/null
+    # fzf-tab vendored (repo config/zsh/fzf-tab) → como plugin de OMZ
+    if [ -d "$dir/config/zsh/fzf-tab" ]; then
+        rm -rf "$ZSH_CUSTOM/plugins/fzf-tab"
+        cp -r "$dir/config/zsh/fzf-tab" "$ZSH_CUSTOM/plugins/fzf-tab"
+    fi
+    cp -r "$dir/config/fastfetch/." "$CFG/fastfetch/" 2>/dev/null
+
     chmod +x "$CFG/bspwm/bin/"* 2>/dev/null
     chmod +x "$CFG/bspwm/autostart.sh" 2>/dev/null
     find "$CFG/bspwm/bars" "$CFG/bspwm/rices" "$CFG/bspwm/config/modules" \
@@ -334,6 +382,12 @@ update_and_verify() {
     chk "checkupdates"         "command -v checkupdates"
     chk "xautolock (AUR)"      "command -v xautolock"
     chk "qalc (libqalculate)"  "command -v qalc"
+    chk "oh-my-zsh (pkg/clone)" "[ -d /usr/share/oh-my-zsh ] || [ -d $HOME/.oh-my-zsh ]"
+    chk "theme agnosterzak"    "[ -f $HOME/.config/zsh/custom/themes/agnosterzak.zsh-theme ]"
+    chk "fzf-tab plugin OMZ"   "[ -f $HOME/.config/zsh/custom/plugins/fzf-tab/fzf-tab.zsh ]"
+    chk "lsd (alias ls)"       "command -v lsd"
+    chk "fastfetch"            "command -v fastfetch && [ -f $HOME/.config/fastfetch/config-pokemon.jsonc ]"
+    chk "pokemon-colorscripts" "command -v pokemon-colorscripts"
     chk "rice endeavour activa" "[ \"\$(cat $HOME/.config/bspwm/.rice 2>/dev/null)\" = endeavour ]"
     chk "RiceSelector"         "[ -x $HOME/.config/bspwm/bin/RiceSelector ]"
     chk "Volume pactl"         "grep -q 'pactl' $HOME/.config/bspwm/bin/Volume"
@@ -367,10 +421,24 @@ if ! $DRY; then
     trap 'kill $SUDO_KEEPER 2>/dev/null' EXIT
 fi
 
+# Guard de preset: picom glx sobre software-rendering en una VM = sesión
+# lag/cuelga todo. Se pregunta (default sí) y se cambia a vm.
+VIRT_TYPE=$(systemd-detect-virt -v 2>/dev/null || true)
+if [ -n "$VIRT_TYPE" ] && [ "$VIRT_TYPE" != "none" ] && [ "$PRESET" = "hw" ]; then
+    echo -e "${YLW}Detectada VM (${VIRT_TYPE}) con preset hw (picom glx).${RST}"
+    if $DRY; then echo "[dry] mantener hw y preguntar en run real"
+    elif ask "¿Cambiar a preset vm (xrender, recomendado en VM)?" y; then
+        PRESET=vm
+    else
+        echo -e "${YLW}hw forzado en VM — si todo va lento, ya sabés por qué.${RST}"
+    fi
+fi
+
 execute "Actualizando sistema (pacman -Syu)"   "Sistema al día"              system_update
 execute "AUR helper (yay/paru)"                "Helper AUR listo"            install_aur_helper
 execute "Instalando core pacman"               "Core EndeavourOS instalado"  install_core
-execute "Paquetes AUR (xautolock)"             "AUR instalado"               install_aur_pkgs
+execute "Paquetes AUR (xautolock, pokemon)"    "AUR instalado"               install_aur_pkgs
+execute "VM tools (VirtualBox guest-utils)"    "Guest utils (o skip host)"   install_vm_tools
 execute "Energía laptop (tlp/zram-generator)"  "Energía laptop (o skip VM)"  install_power
 execute "JetBrainsMono Nerd Font"              "Font Nerd instalada"         download_nerd_font
 execute "Pack gh0stzk (icons/gtk/cursor)"      "Themes gh0stzk en /usr/share" install_gh0stzk_pkgs

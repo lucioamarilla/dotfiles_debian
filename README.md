@@ -3,8 +3,9 @@
 Dotfiles **BSPWM (X11)** para **EndeavourOS** (Arch-based) basados en el entorno de
 **gh0stzk** (18 rices / themes con switch al vuelo, 16 barras polybar estilo, Rofi
 applets, RiceEditor, scratchpad) — con la **capa de comandos de JaKoolit**
-(keybinds de su Ubuntu-Hyprland) portados a X11 y preparados para hardware
-modesto (ThinkPad i3-10110U, 8 GB RAM).
+(keybinds de su Ubuntu-Hyprland) portados a X11, el **prompt zsh de tu Ubuntu**
+(oh-my-zsh + agnosterzak + lsd) y preparado para hardware modesto
+(ThinkPad i3-10110U, 8 GB RAM) y VMs (VirtualBox guest-utils auto).
 
 ```
 Base           : gh0stzk/dotfiles (GPL-3.0) — commit 8b3cd66
@@ -51,12 +52,31 @@ cd ~/dotfiles_eos
 Después: `sudo reboot` → LightDM → sesión **bspwm**. La rice activa al arrancar
 es `endeavour` (paleta púrpura/magenta de EndeavourOS); cambiás con `alt+space`.
 
+## Terminal Ubuntu Edition (zsh)
+
+El `~/.zshrc` de EOS replica tu setup de Ubuntu:
+
+- **oh-my-zsh** (paquete Arch) con **`ZSH_CUSTOM=~/.config/zsh/custom`**
+- Theme custom **`agnosterzak`** (vendido como `home/agnosterzak.zsh-theme`,
+  copiado a `custom/themes/`): prompt powerline 2 líneas — hora · dir · git
+  (dirty/added/deleted/untracked/ahead/behind/stash/tags, ✔ si limpio) · context
+  `@user`. Necesita JetBrainsMono NF (la instala el installer).
+- **fzf-tab** vendored también como plugin OMZ (`custom/plugins/fzf-tab`)
+- **lsd** reemplaza a eza en los aliases (`ls/l/la/lla/lt`) y en previews
+- Plugins distro públicos: `git` + `zsh-autosuggestions`/`zsh-syntax-highlighting`
+  (sourced desde `/usr/share/zsh/plugins/`, OMZ no los re-clona)
+- Extras dev de Ubuntu con guards: sdkman · nvm · flutter · go/kimi/kilo/
+  spicetify/opencode paths · `code --disable-gpu`
+- **pokemon-colorscripts (AUR) + fastfetch**: INSTALADOS y desactivados. Para
+  activar el pokemon+fastfetch de tu Ubuntu, descomentá el bloque del final de
+  `~/.zshrc` (la línea exacta está ahí).
+
 ## Keybinds (JaKoolit layer — cheat completo: `alt+F1`)
 
 | Atajo | Acción |
 |---|---|
 | `super+Return` / `super+shift+Return` | terminal / dropdown flotante |
-| `super+d` / `super+@space` | app launcher |
+| `super+d` / `super+@space` | app launcher (¡bind plano! fix v4.0.2) |
 | `alt+space` | **RiceSelector** (19 temas al vuelo, incluye `endeavour`) |
 | `super+alt+@space` | BarSelector (16 barras polybar) |
 | `super+q` / `super+x` | cerrar (alias ambos) |
@@ -76,7 +96,7 @@ es `endeavour` (paleta púrpura/magenta de EndeavourOS); cambiás con `alt+space
 | `super+alt+r` | SoftReload |
 | `ctrl+alt+Delete` | cerrar sesión |
 | `XF86Audio/Brightness/Media` | pactl + brightnessctl + playerctl |
-| `super+alt+c/e/v/n/b/u` | calc · emoji · clipboard · net · bt · updates |
+| `super+alt+c/e/v/n/b/w/d/u` | calc (RofiCalc/qalc) · emoji · clipboard · net · bluetooth · wallpaper (WallSelect) · ídem · updates |
 | `super+r` | RiceEditor |
 
 ## Sistema de temas gh0stzk (sin cambios)
@@ -94,8 +114,10 @@ es `endeavour` (paleta púrpura/magenta de EndeavourOS); cambiás con `alt+space
 
 ```
 install.sh     ← installer v4 (pacman + yay, spinner, backups ~/.RiceBackup)
-config/        ← árbol gh0stzk completo, patched EndeavourOS
-home/.zshrc    ← zsh gh0stzk (prompt vcs_info, fzf-tab vendored, plugins Arch)
+config/        ← árbol gh0stzk completo, patched EndeavourOS (+ custom/fastfetch)
+home/.zshrc    ← zsh "Ubuntu Edition" (oh-my-zsh + agnosterzak vendido +
+                 fzf-tab + lsd + extras con guards)
+home/agnosterzak.zsh-theme ← tu theme de Ubuntu, vendido en el repo
 misc/          ← fonts bundle, colorscript (arte ascii propio), firefox theme,
                  startup-page (links EOS)
 RiceInstaller  ← REMOVIDO: era Arch-only upstream (ver install.sh)
