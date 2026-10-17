@@ -1,5 +1,18 @@
 # CHANGELOG — dotfiles_eos (rama endeavouros) / dotfiles_debian (main)
 
+## v4.0.1 (fix: paquetes inexistentes en repos de Arch + robustez del installer)
+- Bug reportado desde VM EOS real: batch de core abortaba por targets desconocidos.
+- `qalculate` → `libqalculate` (en Arch el CLI `qalc` vive en libqalculate; el
+  nombre 'qalculate' no existe en repos).
+- `xautolock` fuera del lote pacman: Arch lo purgó de repos oficiales (Spring
+  cleanup '25, quedó en el AUR). Nuevo paso `install_aur_pkgs` (después de
+  detectar/instalar el helper) lo instala con `yay/paru -S --needed --noconfirm`.
+- `base-devel` pasa a ser el primer target del lote (requisito makepkg/AUR).
+- Regresión v4 corregida: `install_core` vuelve a `return 0` warn-and-continue
+  (como v3 Debian). Un paquete opcional que no existe NUNCA más aborta la
+  instalación completa (antes se cortaba antes de copiar configs).
+- verify: checks nuevos `xautolock` y `qalc`.
+
 ## v4.0.0-endeavouros (port EndeavourOS — rama `endeavouros`)
 - Target: EndeavourOS (pacman + yay preinstalado). La línea Debian queda en main.
 - install.sh v4: pacman con esperas de lock de db, `system_update` → `pacman -Syu`

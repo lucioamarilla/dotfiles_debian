@@ -142,7 +142,10 @@ install_aur_helper() {
 }
 
 # ── core: lista Arch/EndeavourOS ─────────────────────────────
+# Nota: xautolock está en el AUR desde la limpieza de huérfanos de Arch
+# (Spring cleanup '25) → va en AUR_PKGS. qalc = libqalculate (no 'qalculate').
 CORE_PKGS=(
+    base-devel
     bspwm sxhkd polybar rofi picom dunst feh maim alacritty kitty
     thunar thunar-archive-plugin tumbler gvfs gvfs-mtp
     geany imagemagick jq curl xclip xdotool xdo xdg-user-dirs
@@ -151,15 +154,18 @@ CORE_PKGS=(
     playerctl mpc mpd mpv ncmpcpp pavucontrol lxsession redshift
     webp-pixbuf-loader papirus-icon-theme
     zsh zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
-    bat eza fzf xautolock brightnessctl i3lock jgmenu xsettingsd
+    bat eza fzf brightnessctl i3lock jgmenu xsettingsd
     clipmenu flameshot unzip zstd git
-    python-gobject qalculate pacman-contrib
+    python-gobject libqalculate pacman-contrib
     network-manager-applet blueman
 )
 
+# Paquetes del AUR (requieren helper — instalados después de install_core)
+AUR_PKGS=(xautolock)
+
 install_core() {
     pacman_wait_lock || return 1
-    local out rc=0
+    local out
     if ! out=$(pacman_install "${CORE_PKGS[@]}"); then
         echo "${YLW}[pacman] lote falló → reintento paquete por paquete${RST}"
         for p in "${CORE_PKGS[@]}"; do
@@ -168,11 +174,23 @@ install_core() {
             if ! out=$(pacman_install "$p"); then
                 echo "${RED}  ✗ $p${RST} (opcional: scripts degradan con aviso)"
                 echo "$out" | tail -3
-                rc=1
             fi
         done
     fi
-    return $rc
+    return 0
+}
+
+install_aur_pkgs() {
+    [ ${#AUR_PKGS[@]} -gt 0 ] || { echo "[skip] sin paquetes AUR"; return 0; }
+    command -v yay >/dev/null 2>&1 || command -v paru >/dev/null 2>&1 || {
+        echo "${YLW}[warn] sin helper AUR — se omite: ${AUR_PKGS[*]}${RST}"; return 0; }
+    local h; h=$(command -v yay || command -v paru)
+    # pkg_installed no distingue repo/AUR; -Qea cubre paquetes AUR instalados
+    local missing=() p
+    for p in "${AUR_PKGS[@]}"; do pkg_installed "$p" || missing+=("$p"); done
+    [ ${#missing[@]} -eq 0 ] && { echo "  AUR ya al día"; return 0; }
+    pacman_wait_lock || return 1
+    "$h" -S --needed --noconfirm "${missing[@]}" 2>&1
 }
 
 install_power() {
@@ -314,6 +332,8 @@ update_and_verify() {
     chk "jgmenu"               "command -v jgmenu"
     chk "helper AUR (yay/paru)" "command -v yay || command -v paru"
     chk "checkupdates"         "command -v checkupdates"
+    chk "xautolock (AUR)"      "command -v xautolock"
+    chk "qalc (libqalculate)"  "command -v qalc"
     chk "rice endeavour activa" "[ \"\$(cat $HOME/.config/bspwm/.rice 2>/dev/null)\" = endeavour ]"
     chk "RiceSelector"         "[ -x $HOME/.config/bspwm/bin/RiceSelector ]"
     chk "Volume pactl"         "grep -q 'pactl' $HOME/.config/bspwm/bin/Volume"
@@ -350,6 +370,7 @@ fi
 execute "Actualizando sistema (pacman -Syu)"   "Sistema al día"              system_update
 execute "AUR helper (yay/paru)"                "Helper AUR listo"            install_aur_helper
 execute "Instalando core pacman"               "Core EndeavourOS instalado"  install_core
+execute "Paquetes AUR (xautolock)"             "AUR instalado"               install_aur_pkgs
 execute "Energía laptop (tlp/zram-generator)"  "Energía laptop (o skip VM)"  install_power
 execute "JetBrainsMono Nerd Font"              "Font Nerd instalada"         download_nerd_font
 execute "Pack gh0stzk (icons/gtk/cursor)"      "Themes gh0stzk en /usr/share" install_gh0stzk_pkgs

@@ -26,6 +26,8 @@ Port EOS  v4   : lucioamarilla — 2026 (rama endeavouros)
 | zram-tools (`/etc/default/zramswap`) | `zram-generator` (`/etc/systemd/zram-generator.conf`, zstd, ram/2) | equivalente Arch |
 | gvfs-backends | `gvfs` + `gvfs-mtp` | nombres pacman |
 | x11-* metapackages | `xorg-server` + `xorg-xev/xwininfo/xrdb/xrandr/xset/xinit` | nombres pacman |
+| `xautolock` + `qalculate` (apt) | `xautolock` desde **AUR** · `libqalculate` (provee `qalc`) | Arch purgó xautolock de repos (Spring cleanup '25); el CLI de Qalculate es libqalculate |
+| sin `base-devel` forzado | `base-devel` va primero en el lote | requerido para builds del AUR (makepkg) |
 | pkgs gh0stzk vía tar | pkgs gh0stzk vía **`pacman -U`** (fallback tar) | son paquetes Arch nativos |
 | plugins zsh en `/usr/share/<plugin>/` | `/usr/share/zsh/plugins/` (con fallback Debian) | layout Arch |
 | alias update = apt | `yay -Syu` / `paru -Syu` / `sudo pacman -Syu` (condicional) | AUR incluido |
@@ -106,6 +108,7 @@ LICENSE        ← GPL-3.0 (gh0stzk) — modificaciones documentadas en CHANGELO
 - ghostty / st: Term autoselecciona lo instalado
 - pentest: nada de herramientas de ciberseguridad (decisión del usuario)
 - paru forzado: yay es el default de EOS; paru solo entra si yay no existe
+- `xautolock` espera red activa (`IdleSetup` degrada con aviso si el build del AUR falla)
 
 ## ASCII art en la terminal (opcional, arte propio)
 
