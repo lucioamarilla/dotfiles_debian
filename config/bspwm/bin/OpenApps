@@ -70,7 +70,7 @@ case "$1" in
         ${FILEMANAGER:-thunar}
         ;;
     --browser)
-        exec "${BROWSER:-$(command -v firefox || echo /usr/bin/firefox-esr)}"
+        exec "${BROWSER:-firefox}"
         ;;
     --editor)
         ${EDITOR:-geany}

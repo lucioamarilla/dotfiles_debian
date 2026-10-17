@@ -1,4 +1,39 @@
-# CHANGELOG — dotfiles_debian
+# CHANGELOG — dotfiles_eos (rama endeavouros) / dotfiles_debian (main)
+
+## v4.0.0-endeavouros (port EndeavourOS — rama `endeavouros`)
+- Target: EndeavourOS (pacman + yay preinstalado). La línea Debian queda en main.
+- install.sh v4: pacman con esperas de lock de db, `system_update` → `pacman -Syu`
+  + autoremove de huérfanos (`pacman -Qtdq`), paquete-por-paquete fallback con
+  `pacman -Q` de guard, AUR helper autodetectado (yay primero, paru fallback; si
+  no hay, `pacman -S yay` — está en el repo endeavouros), banner púrpura EOS.
+- Paquetes mapeados: gvfs-backends → gvfs+gvfs-mtp; x11-* → xorg-xev/xwininfo/
+  xrdb/xrandr/xset/xinit/xorg-server; zram-tools → zram-generator
+  (/etc/systemd/zram-generator.conf, zstd, ram/2 max 8 GB); + python-gobject
+  (NetManagerDM), qalculate (RofiCalc), pacman-contrib (checkupdates),
+  network-manager-applet + blueman (trays del autostart).
+- pkgs gh0stzk (15) ahora con `pacman -U` (son paquetes Arch nativos; fallback tar).
+- Updates reescrito: `checkupdates` + `<helper> -Qua` (yay/paru autodetect),
+  secciones Official/AUR coloreadas, sin sudo; bug v3 `--print-updates` fixed
+  (Term lo llama y no existía); service ExecStart apuntaba a --sync-polybar
+  inexistente → --sync.
+- systemd: DebianUpdates.{service,timer} → EndeavourUpdates.{service,timer}.
+- .zshrc: glyph prompt Debian U+F306 → Arch U+F303 coloreado magenta EOS; paths
+  de plugins con fuente condicional Arch (/usr/share/zsh/plugins/) + fallback
+  Debian; alias update condicional yay→paru→sudo pacman.
+- Glifos distro: 16 bars/*/modules.ini launcher 󰣽 (U+F08FD Debian) →  (U+F303);
+  yazi theme: .SRCINFO glyph 󰣽→  y fg #d70a53 → #7f3fbf
+  (PKGBUILD ídem: púrpura EOS en vez de rojo Debian)
+- Nueva rice `endeavour` (19ª): bg #161120, EOS purple #7f3fbf, EOS magenta
+  #dc35ee, arch_icon=purple EOS, main_bar bar07, GTK LoveLace-zk, iconos
+  Zafiro-Purple, cursor Qogirr-Dark, geany z0mbi3-LoveLace, 3 walls purple
+  (emilia 04/05/08), preview generado (wall branded). Rice default tras
+  instalar (.rice → endeavour).
+- Screenshots dir vía `xdg-user-dir PICTURES` (con fallback ~/Pictures) — ya no
+  fuerza ~/Imágenes.
+- OpenApps: fallback firefox-esr fuera (firefox nativo en EOS).
+- sysfetch: conteo de paquetes dpkg → pacman -Qq.
+- startup-page: links dotfiles_eos (rama endeavouros) + EndeavourOS.
+- Cosméticos: sxhkdrc/picom-vm/ScreenLocker/Term comments → v4 EOS.
 
 ## v3.0.0.3 (debianización: arte fuera, iconos Debian, datos personales removidos)
 - ASCII art upstream removido (18 scripts: pizza, mario, pacman, burger...): el zshrc ya

@@ -1,0 +1,9 @@
+[Unit]
+Description=Check for available updates (pacman + AUR) & sync polybar
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/bspwm/bin/Updates --sync
+
+[Install]
+WantedBy=default.target

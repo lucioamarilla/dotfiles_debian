@@ -74,7 +74,7 @@ default_lockscreen() {
     magick "$TEMP_IMAGE" -blur 5x4 "$TEMP_IMAGE" 2>/dev/null ||
         convert "$TEMP_IMAGE" -blur 5x4 "$TEMP_IMAGE"
 
-    # i3lock VANILLA (apt Debian): sin flags de i3lock-color
+    # i3lock VANILLA (repo oficial): sin flags de i3lock-color
     i3lock -n -t -i "$TEMP_IMAGE" -e --indicator \
         --radius=30 --ring-width=60 \
         --inside-color="$bg" --ring-color="$ring" \
@@ -105,7 +105,7 @@ default_lockscreen() {
 
 case $1 in
     -h|--help)
-        echo "ScreenLocker — i3lock vanilla (Debian). Screenshot + blur + reloj."
+        echo "ScreenLocker — i3lock vanilla (EndeavourOS). Screenshot + blur + reloj."
         ;;
     *)
         default_lockscreen ;;

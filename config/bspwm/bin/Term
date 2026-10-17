@@ -20,7 +20,7 @@ ROFI_THEME="$HOME/.config/bspwm/config/rofi-themes/TermSelector.rasi"
 
 # Function to choose the terminal using rofi
 choose_terminal() {
-    # Terminal List — solo instaladas (v3: sin st/ghostty en Debian default)
+    # Terminal List — solo instaladas (v4: sin st/ghostty en EOS default)
     terminals=""
     command -v alacritty >/dev/null 2>&1 && terminals="${terminals}Alacritty
 "

@@ -140,12 +140,12 @@ const CONFIG = {
 			id: '1',
 			links: [
 				{
-					name: 'dotfiles_debian',
-					link: 'https://github.com/lucioamarilla/dotfiles_debian',
+					name: 'dotfiles_eos',
+					link: 'https://github.com/lucioamarilla/dotfiles_debian/tree/endeavouros',
 				},
 				{
-					name: 'Debian',
-					link: 'https://www.debian.org/',
+					name: 'EndeavourOS',
+					link: 'https://endeavouros.com/',
 				},
 				{
 					name: 'ChatGPT',

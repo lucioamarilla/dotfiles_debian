@@ -1,36 +1,53 @@
 #!/bin/sh
 # =============================================================
-# Author: gh0stzk (port Debian by lucioamarilla)
-# Repo:   https://github.com/lucioamarilla/dotfiles_debian
+# Author: gh0stzk (port EndeavourOS by lucioamarilla)
+# Repo:   https://github.com/lucioamarilla/dotfiles_debian (rama endeavouros)
 #
-# Updates - Script to check for new updates (apt / Debian)
+# Updates - Script to check for new updates (pacman + AUR)
 #           and sync updates module in polybar.
 # Features:
 #   ✔ Shows the number of updates in polybar (Updates module)
+#   ✔ Repo: checkupdates (pacman-contrib) — sincroniza db tmp sin sudo
+#   ✔ AUR:  yay -Qua / paru -Qua (helper autodetectado)
 #   ✔ Cache file compatible with gh0stzk's Updates module
 #   ✔ list mode colored (kitty/terminal agnostic)
 #
-# Dependencies: polybar, xdg cache dir
+# Dependencies: checkupdates (pacman-contrib), yay o paru (opcional: solo AUR)
 # =============================================================
 
 UPDATE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/Updates.txt"
 
 # Sync bars when needed.
 sync_bars() {
-    local current_rice current_bar
-
     if pgrep -x polybar >/dev/null; then
         polybar-msg action updates hook 0 >/dev/null 2>&1
     fi
 }
 
+# Helper AUR: yay primero (default de EndeavourOS), paru como fallback.
+aur_helper() {
+    if command -v yay >/dev/null 2>&1; then
+        echo yay
+    elif command -v paru >/dev/null 2>&1; then
+        echo paru
+    fi
+}
+
 get_updates() {
-    sudo -n apt-get -q update >/dev/null 2>&1 \
-        || { apt-get -q update >/dev/null 2>&1; }  # solo si la cache esta fresca
-    official_updates=$(apt list --upgradable 2>/dev/null | sed 1d)
+    official_updates=$(checkupdates 2>/dev/null)
 
     total=0
     [ -n "$official_updates" ] && total=$(printf '%s\n' "$official_updates" | wc -l)
+
+    helper=$(aur_helper)
+    if [ -n "$helper" ]; then
+        aur_updates=$("$helper" -Qua 2>/dev/null)
+        if [ -n "$aur_updates" ]; then
+            aur_total=$(printf '%s\n' "$aur_updates" | wc -l)
+            total=$((total + aur_total))
+        fi
+    fi
+    return 0
 }
 
 # Persist the last successful result (count) and sync bars
@@ -44,35 +61,27 @@ check_updates() {
 }
 
 list_updates() {
-    if get_updates; then
-        persist_results
-        offline=0
-    else
-        total=$(cat "$UPDATE_FILE" 2>/dev/null)
-        offline=1
-    fi
-
+    get_updates
+    persist_results
     total=${total:-0}
 
     if [ "$total" -gt 0 ]; then
         printf "\033[1m\033[33mThere are %s updates available:\033[0m\n" "$total"
-        if [ "$offline" -eq 1 ]; then
-            printf "\n\033[1m\033[31mNo internet connection.\033[0m\n"
-        else
-            printf "\n\033[1m\033[34mOfficial updates:\033[0m\n"
+        if [ -n "$official_updates" ]; then
+            printf "\n\033[1m\033[34mOfficial repos:\033[0m\n"
             printf '%s\n' "$official_updates" | awk '{print $1"/"$2}'
         fi
-    else
-        if [ "$offline" -eq 1 ]; then
-            printf "\033[1m\033[31mNo internet connection.\033[0m\n"
-        else
-            printf "\033[1m\033[32mYour system is already updated!\033[0m\n"
+        if [ -n "$aur_updates" ]; then
+            printf "\n\033[1m\033[35mAUR:\033[0m\n"
+            printf '%s\n' "$aur_updates" | awk '{print $1"/"$4}'
         fi
+    else
+        printf "\033[1m\033[32mYour system is already updated!\033[0m\n"
     fi
 }
 
 case "$1" in
-    --list)     list_updates; exit 0 ;;
+    --list|--print-updates) list_updates; exit 0 ;;
     --count)    check_updates; cat "$UPDATE_FILE" 2>/dev/null; exit 0 ;;
     --sync)     check_updates; exit 0 ;;
     *)          check_updates

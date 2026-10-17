@@ -1,6 +1,6 @@
 #  ┌─┐┬  ┬┌─┐┌─┐┌┐┌  - lucioamarilla
-#  ├─┤│  │├─┤└─┐│││  - https://github.com/lucioamarilla/dotfiles_debian
-#  ┴ ┴┴─┘┴┴ ┴└─┘┘└┘  - zsh conf · base gh0stzk @8b3cd66, port Debian 13
+#  ├─┤│  │├─┤└─┐│││  - https://github.com/lucioamarilla/dotfiles_debian (rama endeavouros)
+#  ┴ ┴┴─┘┴┴ ┴└─┘┘└┘  - zsh conf · base gh0stzk @8b3cd66, port EndeavourOS
 
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
@@ -110,15 +110,21 @@ function dir_icon {
   fi
 }
 
-PS1='%B%F{blue}%f%b  %B%F{magenta}%n%f%b $(dir_icon)  %B%F{red}%~%f%b${vcs_info_msg_0_} %(?.%B%F{green}.%F{red})%f%b '
+PS1='%B%F{magenta}%f%b  %B%F{magenta}%n%f%b $(dir_icon)  %B%F{red}%~%f%b${vcs_info_msg_0_} %(?.%B%F{green}.%F{red})%f%b '
 
 #  ┌─┐┬  ┬ ┬┌─┐┬┌┐┌┌─┐
 #  ├─┘│  │ ││ ┬││││└─┐
 #  ┴  ┴─┘└─┘└─┘┴┘└┘└─┘
 source ~/.config/zsh/fzf-tab/fzf-tab.zsh
-source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+# Plugins de repos oficiales: Arch/EndeavourOS (/usr/share/zsh/plugins/) con
+# fallback al layout Debian (/usr/share/<plugin>/) para portabilidad.
+_src_plugin() { [ -e "$1" ] && { source "$1"; return 0; }; return 1; }
+_src_plugin /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh \
+  || _src_plugin /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+_src_plugin /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+  || _src_plugin /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+_src_plugin /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh \
+  || _src_plugin /usr/share/zsh-history-substring-search/zsh-history-substring-search.zsh
 
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
@@ -147,8 +153,15 @@ fi
 #  ┌─┐┬  ┬┌─┐┌─┐
 #  ├─┤│  │├─┤└─┐
 #  ┴ ┴┴─┘┴┴ ┴└─┘
-# alias update: apt (Debian) — el alias anterior era paru (Arch upstream)
-alias update="sudo apt update && sudo apt upgrade -y"
+# alias update: pacman + AUR (helper autodetectado — yay es el default de EOS;
+# en la versión Debian era apt, en upstream gh0stzk paru)
+if command -v yay >/dev/null 2>&1; then
+  alias update="yay -Syu"
+elif command -v paru >/dev/null 2>&1; then
+  alias update="paru -Syu"
+else
+  alias update="sudo pacman -Syu"
+fi
 alias grub-update="sudo grub-mkconfig -o /boot/grub/grub.cfg"
 
 alias music="ncmpcpp"

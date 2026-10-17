@@ -1,28 +1,32 @@
 #!/bin/bash
 # ==============================================================================
-#  install.sh — dotfiles_debian v3 (base gh0stzk, comandos JaKoolit)
-#  Port Debian 12/13 del installer Arch-only de gh0stzk/dotfiles (GPL-3.0)
+#  install.sh — dotfiles_eos v4 (base gh0stzk, comandos JaKoolit)
+#  Port EndeavourOS del installer del port Debian v3 (base gh0stzk, GPL-3.0)
 #
-#  Cambios vs upstream:
-#   • apt en vez de pacman/chaotic — CERO compilaciones (sin eww/rustup/npm/paru)
-#   • clipcat→clipmenu · pamixer→pactl · i3lock-color→i3lock (vanilla port)
-#   • eww descartado (16/18 barras polybar; bar02/bar18 filtradas del selector)
-#   • 14 paquetes gh0stzk (icons/gtk/cursor) desde github.com/gh0stzk/pkgs (raw)
-#   • JetBrainsMono Nerd Font desde releases de nerd-fonts (la usan las rices)
-#   • fzf-tab vendorizado en el repo (sin git post-install)
-#   • sxhkdrc con capa JaKoolit · presets vm/hw · backups ~/.RiceBackup
+#  Cambios vs la versión Debian (v3):
+#   • pacman + AUR helper (yay primero — default de EOS; paru fallback)
+#   • checkupdates (pacman-contrib) + <helper> -Qua en Updates
+#   • zram-generator en vez de zram-tools · gvfs/gvfs-mtp en vez de gvfs-backends
+#   • pkgs gh0stzk instalados con pacman -U (son paquetes Arch nativos)
+#   • rice default: "endeavour" (paleta púrpura/magenta de EndeavourOS)
+#   • zsh plugins de repos oficiales (/usr/share/zsh/plugins/)
+#   • clipmenu se mantiene (repo oficial; sin AUR extra)
 #
 #  Uso:
 #    ./install.sh                 # completo, preset autodetectado
 #    ./install.sh --preset vm     # picom xrender (VirtualBox)
-#    ./install.sh --preset hw     # glx — ThinkPad/clasico
-#    ./install.sh --no-icons      # skip icon themes de gh0stzk
+#    ./install.sh --preset hw     # glx — laptop/pc clásico (tlp + zram)
+#    ./install.sh --no-icons      # skip pack de temas de gh0stzk
 #    ./install.sh --no-power      # skip tlp/zram (VM)
 #    ./install.sh --dry-run       # mostrar acciones sin ejecutar
 # ==============================================================================
 
-GRN=$'\e[32m'; YLW=$'\e[33m'; RED=$'\e[31m'; BLU=$'\e[34m'; CYN=$'\e[36m'; RST=$'\e[0m'
+GRN=$'\e[32m'; YLW=$'\e[33m'; RED=$'\e[31m'; BLU=$'\e[34m'; CYN=$'\e[36m'
+PUR=$'\e[38;2;127;63;191m'   # EndeavourOS purple
+MAG=$'\e[38;2;220;53;238m'   # EndeavourOS magenta
+RST=$'\e[0m'
 PRESET="auto"; NO_POWER=false; NO_ICONS=false; DRY=false; NEXT=false
+AUR_HELPER=""
 
 for arg in "$@"; do
     case "$arg" in
@@ -32,7 +36,7 @@ for arg in "$@"; do
         --no-power) NO_POWER=true ;;
         --no-icons) NO_ICONS=true ;;
         --dry-run) DRY=true ;;
-        --help|-h) sed -n '3,20p' "$0" | sed "s/^#\s*//"; exit 0 ;;
+        --help|-h) sed -n '3,22p' "$0" | sed "s/^#\s*//"; exit 0 ;;
     esac
 done
 [ "$PRESET" = "auto" ] && { PRESET=hw; command -v systemd-detect-virt >/dev/null 2>&1 && systemd-detect-virt -q && PRESET=vm; }
@@ -43,9 +47,9 @@ RESUMEN=()
 FRAME=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
 
 banner() {
-    echo -e "${CYN}══════════════════════════════════════════════${RST}"
-    echo -e "  Dotfiles Debian v3 — ${YLW}base gh0stzk · comandos JaKoolit${RST}"
-    echo -e "${CYN}══════════════════════════════════════════════${RST}"
+    echo -e "${PUR}══════════════════════════════════════════════${RST}"
+    echo -e "  Dotfiles EndeavourOS v4 — ${MAG}base gh0stzk · comandos JaKoolit${RST}"
+    echo -e "${PUR}══════════════════════════════════════════════${RST}"
 }
 
 ask() { local def="${2:-n}"; read -rp "$1 [$def] " a; a="${a:-$def}"; [[ "$a" =~ ^[YySs] ]]; }
@@ -84,70 +88,109 @@ execute() {
     view_status
 }
 
-# ── apt helpers (v2.0.2 machinery) ──────────────────────────
-apt_with_retry() {
-    local n=0 out
-    while : ; do
-        if out=$(sudo env DEBIAN_FRONTEND=noninteractive "$@" 2>&1); then
-            return 0
-        fi
-        if printf '%s\n' "$out" | grep -qiE "could not get lock|mutex|lock-frontend"; then
-            n=$((n + 1)); [ "$n" -ge 3 ] && { printf '%s\n' "$out" | tail -6; return 1; }
-            sleep 30
-        else
-            printf '%s\n' "$out" | tail -8; return 1
-        fi
+# ── pacman helpers ───────────────────────────────────────────
+# Espera hasta 90s si otro pacman (o el Welcome de EOS) tiene el lock de la db.
+pacman_wait_lock() {
+    local n=0
+    while [ -f /var/lib/pacman/db.lck ] && pgrep -x pacman >/dev/null 2>&1; do
+        n=$((n + 1)); [ "$n" -ge 90 ] && return 1
+        sleep 1
     done
+    return 0
+}
+
+pkg_installed() { pacman -Qq "$1" >/dev/null 2>&1; }
+
+pacman_install() {
+    # instala solo lo que falta; espera el lock antes de tocar la db
+    local missing=() p
+    for p in "$@"; do pkg_installed "$p" || missing+=("$p"); done
+    [ ${#missing[@]} -eq 0 ] && return 0
+    pacman_wait_lock || return 1
+    sudo pacman -S --needed --noconfirm --noprogressbar "${missing[@]}" 2>&1
 }
 
 system_update() {
-    apt_with_retry apt-get -qq update
-    apt_with_retry apt-get -qy upgrade
-    apt_with_retry apt-get autoremove -qy
+    pacman_wait_lock || return 1
+    sudo pacman -Syu --noconfirm --noprogressbar 2>&1
+    # huerfanos (solo si existen)
+    local orphans
+    orphans=$(pacman -Qtdq 2>/dev/null) || true
+    if [ -n "$orphans" ]; then
+        pacman_wait_lock || return 1
+        echo "$orphans" | sudo pacman -Rns --noconfirm --noprogressbar - 2>&1 || true
+    fi
 }
 
-install_core() {
-    local rc=0
-    apt_with_retry apt-get install -y -qq \
-        bspwm sxhkd polybar rofi picom dunst feh maim alacritty kitty \
-        thunar thunar-archive-plugin tumbler gvfs-backends \
-        geany imagemagick jq curl xclip xdotool xdo xdg-user-dirs \
-        x11-utils x11-apps x11-xserver-utils xorg lightdm lightdm-gtk-greeter \
-        playerctl mpc mpd mpv ncmpcpp pavucontrol lxsession redshift \
-        webp-pixbuf-loader papirus-icon-theme \
-        zsh zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search \
-        bat eza fzf xautolock brightnessctl i3lock jgmenu xsettingsd \
-        clipmenu flameshot unzip zstd git || rc=$?
+detect_aur_helper() {
+    local h
+    for h in yay paru; do
+        command -v "$h" >/dev/null 2>&1 && { AUR_HELPER="$h"; return 0; }
+    done
+    return 1
+}
 
-    if [ $rc -ne 0 ]; then
-        echo "${YLW}[apt] lote falló → reintento paquete por paquete${RST}"
-        for p in bspwm sxhkd polybar rofi picom dunst feh maim alacritty kitty \
-                 thunar gvfs-backends geany imagemagick jq curl xclip xdotool xdo \
-                 xdg-user-dirs x11-utils x11-apps x11-xserver-utils xorg lightdm \
-                 lightdm-gtk-greeter playerctl mpc mpd mpv ncmpcpp pavucontrol \
-                 lxsession redshift webp-pixbuf-loader \
-                 zsh zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search \
-                 bat eza fzf xautolock brightnessctl i3lock jgmenu xsettingsd \
-                 clipmenu flameshot git; do
-            dpkg -s "$p" >/dev/null 2>&1 && continue
-            apt_with_retry apt-get install -y -qq "$p" \
-                || echo "${RED}  ✗ $p${RST} (opcional: scripts degradan con aviso)"
+install_aur_helper() {
+    if detect_aur_helper; then
+        echo "  helper detectado: ${AUR_HELPER}"
+        return 0
+    fi
+    # En EOS 'yay' vive en el repo endeavouros → instalable con pacman directo
+    echo "  sin helper AUR → instalando yay desde el repo endeavouros"
+    pacman_install yay || return 1
+    detect_aur_helper
+}
+
+# ── core: lista Arch/EndeavourOS ─────────────────────────────
+CORE_PKGS=(
+    bspwm sxhkd polybar rofi picom dunst feh maim alacritty kitty
+    thunar thunar-archive-plugin tumbler gvfs gvfs-mtp
+    geany imagemagick jq curl xclip xdotool xdo xdg-user-dirs
+    xorg-server xorg-xinit xorg-xev xorg-xwininfo xorg-xrdb xorg-xrandr xorg-xset
+    lightdm lightdm-gtk-greeter
+    playerctl mpc mpd mpv ncmpcpp pavucontrol lxsession redshift
+    webp-pixbuf-loader papirus-icon-theme
+    zsh zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
+    bat eza fzf xautolock brightnessctl i3lock jgmenu xsettingsd
+    clipmenu flameshot unzip zstd git
+    python-gobject qalculate pacman-contrib
+    network-manager-applet blueman
+)
+
+install_core() {
+    pacman_wait_lock || return 1
+    local out rc=0
+    if ! out=$(pacman_install "${CORE_PKGS[@]}"); then
+        echo "${YLW}[pacman] lote falló → reintento paquete por paquete${RST}"
+        for p in "${CORE_PKGS[@]}"; do
+            pkg_installed "$p" && continue
+            pacman_wait_lock || true
+            if ! out=$(pacman_install "$p"); then
+                echo "${RED}  ✗ $p${RST} (opcional: scripts degradan con aviso)"
+                echo "$out" | tail -3
+                rc=1
+            fi
         done
     fi
-    return 0
+    return $rc
 }
 
 install_power() {
     ls /sys/class/power_supply/*BAT* >/dev/null 2>&1 || { echo "[skip] no es laptop"; return 0; }
     $NO_POWER && { echo "[skip] --no-power"; return 0; }
-    local rc=0
-    apt_with_retry apt-get install -y -qq tlp thermald zram-tools powertop || rc=$?
+    pacman_wait_lock || return 1
+    pacman_install tlp thermald powertop zram-generator || true
     sudo systemctl disable --now power-profiles-daemon 2>/dev/null || true
     sudo systemctl enable --now thermald 2>/dev/null || true
     sudo systemctl enable --now tlp 2>/dev/null || true
-    { echo "ALGO=zstd"; echo "PERCENT=40"; } | sudo tee /etc/default/zramswap >/dev/null 2>/dev/null
-    sudo systemctl enable --now zramswap 2>/dev/null || true
-    return $rc
+    # zram-generator (udev-triggered: systemd-zram-setup@zram0)
+    sudo tee /etc/systemd/zram-generator.conf >/dev/null 2>&1 <<'EOF'
+[zram0]
+zram-size = min(ram / 2, 8192)
+compression-algorithm = zstd
+EOF
+    sudo systemctl start systemd-zram-setup@zram0.service 2>/dev/null || true
+    return 0
 }
 
 download_nerd_font() {
@@ -155,7 +198,7 @@ download_nerd_font() {
     local url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
     local tmp; tmp=$(mktemp -d)
     if ! curl -fsSL --max-time 180 "$url" -o "$tmp/jbm.zip"; then
-        echo "${YLW}[warn] no se pudo descargar JetBrainsMono NF (seguedo al bundle del repo)${RST}"
+        echo "${YLW}[warn] no se pudo descargar JetBrainsMono NF (sigue el bundle del repo)${RST}"
         rm -rf "$tmp"; return 0
     fi
     unzip -q -o "$tmp/jbm.zip" -d "$tmp/nf" 2>/dev/null
@@ -194,12 +237,16 @@ install_gh0stzk_pkgs() {
         if ! curl -fsSL --max-time 120 "$PKGS_URL/$pkg" -o "$tmp/$pkg"; then
             echo "${YLW}[warn] no se pudo bajar: $pkg${RST}"; failed=$((failed + 1)); continue
         fi
-        tar --zstd -xf "$tmp/$pkg" -C "$tmp" 2>/dev/null || failed=$((failed + 1))
+        # Son paquetes Arch nativos: pacman los registra. Fallback: extracción tar.
+        pacman_wait_lock || true
+        if ! sudo pacman -U --noconfirm --noprogressbar "$tmp/$pkg" >/dev/null 2>&1; then
+            tar --zstd -xf "$tmp/$pkg" -C "$tmp" 2>/dev/null || failed=$((failed + 1))
+        fi
     done
     if [ -d "$tmp/usr" ]; then
         sudo cp -a "$tmp/usr/." /usr/ 2>/dev/null
-        sudo fc-cache -f >/dev/null 2>&1
     fi
+    sudo fc-cache -f >/dev/null 2>&1
     rm -rf "$tmp"
     [ "$failed" -gt 0 ] && echo "${YLW}[warn] $failed pkgs gh0stzk fallaron (rices bootearán con papirus/Adwaita)${RST}"
     return 0
@@ -216,7 +263,10 @@ install_configs() {
     fi
     [ -f "$HOME/.zshrc" ] && mv -f "$HOME/.zshrc" "$HOME/.RiceBackup/zshrc-$(date +%Y%m%d-%H%M%S)"
 
-    mkdir -p "$CFG" "$HOME/.local/share" "$HOME/.local/bin" "$HOME/Imágenes/ScreenShots"
+    local PICS_DIR
+    PICS_DIR=$(xdg-user-dir PICTURES 2>/dev/null || true)
+    [ -z "$PICS_DIR" ] && PICS_DIR="$HOME/Pictures"
+    mkdir -p "$CFG" "$HOME/.local/share" "$HOME/.local/bin" "$PICS_DIR/ScreenShots"
 
     cp -r "$dir/config/." "$CFG/"
     cp -r "$dir/misc/fonts/." "$HOME/.local/share/fonts/" 2>/dev/null
@@ -228,8 +278,11 @@ install_configs() {
     chmod +x "$CFG/bspwm/bin/"* 2>/dev/null
     chmod +x "$CFG/bspwm/autostart.sh" 2>/dev/null
     find "$CFG/bspwm/bars" "$CFG/bspwm/rices" "$CFG/bspwm/config/modules" \
-         -type f \( -name "*.sh" -o -name "*.bash" \) -exec chmod +x {} + 2>/dev/null
+         -type f \( -name "*.sh" -o -name "*.bash" -o -name "theme-config.bash" \) -exec chmod +x {} + 2>/dev/null
     chmod +x "$HOME/.local/bin/"* 2>/dev/null
+
+    # rice default: endeavour (paleta EndeavourOS)
+    echo "endeavour" > "$CFG/bspwm/.rice"
 
     # picom preset
     if [ "$PRESET" = "vm" ]; then
@@ -259,7 +312,9 @@ update_and_verify() {
     chk "kitty"                "command -v kitty"
     chk "alacritty"            "command -v alacritty"
     chk "jgmenu"               "command -v jgmenu"
-    chk "rice emilia activa"   "[ \"\$(cat $HOME/.config/bspwm/.rice 2>/dev/null)\" = emilia ]"
+    chk "helper AUR (yay/paru)" "command -v yay || command -v paru"
+    chk "checkupdates"         "command -v checkupdates"
+    chk "rice endeavour activa" "[ \"\$(cat $HOME/.config/bspwm/.rice 2>/dev/null)\" = endeavour ]"
     chk "RiceSelector"         "[ -x $HOME/.config/bspwm/bin/RiceSelector ]"
     chk "Volume pactl"         "grep -q 'pactl' $HOME/.config/bspwm/bin/Volume"
     chk "ScreenLocker vanilla" "grep -q 'i3lock -n -t -i' $HOME/.config/bspwm/bin/ScreenLocker"
@@ -271,6 +326,7 @@ update_and_verify() {
     chk "clipmenu"             "command -v clipmenu"
     chk "lightdm enabled"      "systemctl is-enabled lightdm"
     chk "zsh default user"     "[ \"\$(getent passwd \$USER | cut -d: -f7)\" = /usr/bin/zsh ]"
+    chk "rice endeavour en rices" "[ -f $HOME/.config/bspwm/rices/endeavour/theme-config.bash ]"
     echo -e "\n ${GRN}$ok ok${RST} / ${RED}$bad faltantes${RST}"
     return 0
 }
@@ -281,8 +337,8 @@ banner
 if [ "$(id -u)" -eq 0 ]; then echo -e "${RED}ERROR:${RST} no corras con sudo/root."; exit 1; fi
 DISTRO=$(grep -oP '^ID=\K.*' /etc/os-release 2>/dev/null)
 case "$DISTRO" in
-    debian*) ;;
-    *) echo "${YLW}AVISO: pensado para Debian 12/13 — distro detectada: ${DISTRO:-?}${RST}" ;;
+    endeavouros|arch) ;;
+    *) echo -e "${YLW}AVISO: pensado para EndeavourOS (Arch-based) — distro detectada: ${DISTRO:-?}${RST}" ;;
 esac
 if ! $DRY; then
     sudo -v 2>/dev/null || { echo -e "${RED}Falta sudo${RST}"; exit 1; }
@@ -291,17 +347,19 @@ if ! $DRY; then
     trap 'kill $SUDO_KEEPER 2>/dev/null' EXIT
 fi
 
-execute "Actualizando sistema"        "Sistema al día"              system_update
-execute "Instalando core apt"         "Core Debian instalado"       install_core
-execute "Energía laptop (tlp/zram)"   "Energía laptop (o skip VM)"  install_power
-execute "JetBrainsMono Nerd Font"     "Font Nerd instalada"         download_nerd_font
-execute "Pack gh0stzk (icons/gtk/cursor)" "Themes gh0stzk en /usr/share" install_gh0stzk_pkgs
-execute "Copiando configs (+backup)"  "Configs en ~/.config"        install_configs
-execute "Update + verify"             "Verificación completa"       update_and_verify
+execute "Actualizando sistema (pacman -Syu)"   "Sistema al día"              system_update
+execute "AUR helper (yay/paru)"                "Helper AUR listo"            install_aur_helper
+execute "Instalando core pacman"               "Core EndeavourOS instalado"  install_core
+execute "Energía laptop (tlp/zram-generator)"  "Energía laptop (o skip VM)"  install_power
+execute "JetBrainsMono Nerd Font"              "Font Nerd instalada"         download_nerd_font
+execute "Pack gh0stzk (icons/gtk/cursor)"      "Themes gh0stzk en /usr/share" install_gh0stzk_pkgs
+execute "Copiando configs (+backup)"           "Configs en ~/.config"        install_configs
+execute "Update + verify"                      "Verificación completa"       update_and_verify
 
-echo -e "\n${GRN}■ Instalación completa${RST} — preset ${CYN}${PRESET^^}${RST}"
+echo -e "\n${GRN}■ Instalación completa${RST} — preset ${CYN}${PRESET^^}${RST} · helper ${CYN}${AUR_HELPER:-?}${RST}"
 echo "  Siguiente: ${CYN}sudo reboot${RST} → LightDM → sesión ${CYN}bspwm${RST}"
 echo "  Cheatsheet: ${CYN}alt+F1${RST} · RiceSelector: ${CYN}alt+space${RST} · BarSelector: ${CYN}super+alt+space${RST}"
+echo "  Rice default: ${MAG}endeavour${RST} (paleta EndeavourOS) — cambiá con RiceSelector"
 if ask "¿Reboot ahora?" n; then
     sudo systemctl reboot
 fi

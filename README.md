@@ -1,45 +1,53 @@
-# dotfiles_debian v3 — base gh0stzk + comandos JaKoolit
+# dotfiles_eos v4 — base gh0stzk + comandos JaKoolit (rama `endeavouros`)
 
-Dotfiles **BSPWM (X11)** para **Debian 12/13 (trixie)** basados en el entorno de
+Dotfiles **BSPWM (X11)** para **EndeavourOS** (Arch-based) basados en el entorno de
 **gh0stzk** (18 rices / themes con switch al vuelo, 16 barras polybar estilo, Rofi
 applets, RiceEditor, scratchpad) — con la **capa de comandos de JaKoolit**
-(keybinds de su Ubuntu-Hyprland) portada a X11 y preparada para hardware modesto
-(ThinkPad i3-10110U, 8 GB RAM).
+(keybinds de su Ubuntu-Hyprland) portados a X11 y preparados para hardware
+modesto (ThinkPad i3-10110U, 8 GB RAM).
 
 ```
-Base           : gh0stzk/dotfiles (GPL-3.0) —commit 8b3cd66
+Base           : gh0stzk/dotfiles (GPL-3.0) — commit 8b3cd66
 Keybinds       : JaKoolit (Ubuntu-Hyprland) portados a BSPWM/sxhkd
-Port Debian    : lucioamarilla — 2026
+Port Debian v3 : lucioamarilla — 2026 (branch/rama histórica: main)
+Port EOS  v4   : lucioamarilla — 2026 (rama endeavouros)
 ```
 
-## Qué cambió respecto a gh0stzk upstream
+## Qué cambió respecto a la versión Debian (v3)
 
-| Upstream (Arch) | Esta versión (Debian 13) | Motivo |
+| Debian v3 (apt) | EndeavourOS v4 (pacman/AUR) | Motivo |
 |---|---|---|
-| pacman + chaotic-aur | apt (repos oficiales) | Debian |
-| eww (compila Rust) + bar02/bar18 | ✂ fuera — polybar only | 40 MB RAM, 0 builds |
-| clipcat | `clipmenu` | no existe en Debian |
-| pamixer | `pactl` | ídem |
-| i3lock-color (build) | `i3lock` vanilla + port visual | sin builds |
-| st-gh0stzk / ghostty | kitty/alacritty (Term con autodetección) | antes de st no compil |
-| paru + checkupdates + reflector | `Updates` (apt) | reescrito |
-| npm/rustup | ✂ drop | sin usos |
-| 15 paquetes gh0stzk (icons/gtk/cursor) | **descarga `tar --zstd` desde github.com/gh0stzk/pkgs** | mismos binarios de datos |
-| JetBrainsMono Nerd font | descarga de releases nerd-fonts | las rices la nombran |
-| sxhkdrc gh0stzk | **layer JaKoolit** (84 binds) | pedidos: mismos comandos |
+| apt (repos oficiales) | `pacman` + AUR helper **autodetectado** (yay primero, paru fallback) | EOS trae yay preinstalado |
+| apt list --upgradable | `checkupdates` (pacman-contrib) + `<helper> -Qua` | Updates con repos + AUR |
+| `DebianUpdates.{service,timer}` | `EndeavourUpdates.{service,timer}` | mismo timer, base pacman |
+| clipmenu | `clipmenu` (repo extra de Arch) | sigue sin AUR extra |
+| pactl | `pactl` | PipeWire de EOS lo cubre |
+| i3lock vanilla | `i3lock` vanilla (repo extra) | sin builds/AUR |
+| zram-tools (`/etc/default/zramswap`) | `zram-generator` (`/etc/systemd/zram-generator.conf`, zstd, ram/2) | equivalente Arch |
+| gvfs-backends | `gvfs` + `gvfs-mtp` | nombres pacman |
+| x11-* metapackages | `xorg-server` + `xorg-xev/xwininfo/xrdb/xrandr/xset/xinit` | nombres pacman |
+| pkgs gh0stzk vía tar | pkgs gh0stzk vía **`pacman -U`** (fallback tar) | son paquetes Arch nativos |
+| plugins zsh en `/usr/share/<plugin>/` | `/usr/share/zsh/plugins/` (con fallback Debian) | layout Arch |
+| alias update = apt | `yay -Syu` / `paru -Syu` / `sudo pacman -Syu` (condicional) | AUR incluido |
+| rice default emilia | **rice `endeavour`** (paleta púrpura/magenta EOS) | personalización EOS |
+| glyph Debian U+F306 / 󰣽 | glyph Arch  en **púrpura EOS #7f3fbf** | identidad EOS sobre Arch |
 
 ## Instalación
 
 ```bash
-git clone https://github.com/lucioamarilla/dotfiles_debian.git ~/dotfiles_debian
-cd ~/dotfiles_debian
+git clone -b endeavouros https://github.com/lucioamarilla/dotfiles_debian.git ~/dotfiles_eos
+cd ~/dotfiles_eos
 ./install.sh --preset vm      # VirtualBox (picom xrender)
 # ./install.sh --preset hw    # ThinkPad real (glx + tlp/zram)
-# ./install.sh --no-icons     # sin descargar los 14 pkgs de temas de gh0stzk
+# ./install.sh --no-icons     # sin descargar los 15 pkgs de temas de gh0stzk
 # ./install.sh --dry-run
 ```
 
-Después: `sudo reboot` → LightDM → sesión **bspwm**.
+> Si ya renombraste el repo en GitHub a `dotfiles_eos`, cambiá la URL del clone
+> (GitHub redirige el nombre viejo igualmente).
+
+Después: `sudo reboot` → LightDM → sesión **bspwm**. La rice activa al arrancar
+es `endeavour` (paleta púrpura/magenta de EndeavourOS); cambiás con `alt+space`.
 
 ## Keybinds (JaKoolit layer — cheat completo: `alt+F1`)
 
@@ -47,7 +55,7 @@ Después: `sudo reboot` → LightDM → sesión **bspwm**.
 |---|---|
 | `super+Return` / `super+shift+Return` | terminal / dropdown flotante |
 | `super+d` / `super+@space` | app launcher |
-| `alt+space` | **RiceSelector** (18 temas al vuelo) |
+| `alt+space` | **RiceSelector** (19 temas al vuelo, incluye `endeavour`) |
 | `super+alt+@space` | BarSelector (16 barras polybar) |
 | `super+q` / `super+x` | cerrar (alias ambos) |
 | `super+shift+q/x` | matar proceso |
@@ -71,27 +79,33 @@ Después: `sudo reboot` → LightDM → sesión **bspwm**.
 
 ## Sistema de temas gh0stzk (sin cambios)
 
-- `alt+space` (RiceSelector): cambio INSTANTANEO de rice — reescribe picom, polybar colors, dunst, rofi shared.rasi, alacritty, kitty? (no: kitty colors.ini via module), GTK (xsettingsd), lockscreen colors, jgmenu, nvim theme…
+- `alt+space` (RiceSelector): cambio INSTANTANEO de rice — reescribe picom,
+  polybar colors, dunst, rofi shared.rasi, alacritty, kitty colors, GTK
+  (xsettingsd), lockscreen colors, jgmenu, nvim theme…
+- **Rice `endeavour`**: bg `#161120`, púrpura EOS `#7f3fbf`, magenta EOS
+  `#dc35ee`, glyph Arch  tintado púrpura, GTK LoveLace-zk, iconos
+  Zafiro-Purple. Walls púrpura en `rices/endeavour/walls/`.
 - BarSelector: 16 barras de polybar con previews por rice
 - `super+r` abre **RiceEditor** (GUI gh0stzk para personalizar la rice activa)
 
 ## Estructura
 
 ```
-install.sh     ← installer v3 (spinner + confirmaciones apt + backups ~/.RiceBackup)
-config/        ← árbol gh0stzk completo, patched Debian (14 archivos ver CHANGELOG)
-home/.zshrc    ← zsh gh0stzk (prompt vcs_info, fzf-tab vendored, plugins apt)
-misc/          ← fonts bundle, colorscript (art ascii personal, ver abajo), firefox theme
-RiceInstaller  ← REMOVIDO: era Arch-only (ver install.sh)
-LICENSE        ← GPL-3.0 (gh0stzk) — nuestras modificaciones documentadas en CHANGELOG
+install.sh     ← installer v4 (pacman + yay, spinner, backups ~/.RiceBackup)
+config/        ← árbol gh0stzk completo, patched EndeavourOS
+home/.zshrc    ← zsh gh0stzk (prompt vcs_info, fzf-tab vendored, plugins Arch)
+misc/          ← fonts bundle, colorscript (arte ascii propio), firefox theme,
+                 startup-page (links EOS)
+RiceInstaller  ← REMOVIDO: era Arch-only upstream (ver install.sh)
+LICENSE        ← GPL-3.0 (gh0stzk) — modificaciones documentadas en CHANGELOG
 ```
 
 ## Qué NO trae esta versión
 
-- eww widgets (welcome/profilecard/player): descartados (ver CHANGELOG)
-- ghostty / st: Term autoseleciona lo instalado
-- simple-mtpfs: gvfs-backends cubre MTP en thunar
+- eww widgets (welcome/profilecard/player): descartados desde v3 (16/18 barras polybar)
+- ghostty / st: Term autoselecciona lo instalado
 - pentest: nada de herramientas de ciberseguridad (decisión del usuario)
+- paru forzado: yay es el default de EOS; paru solo entra si yay no existe
 
 ## ASCII art en la terminal (opcional, arte propio)
 
@@ -117,20 +131,23 @@ repo para que sobrevivan a reinstalaciones (install.sh los re-copia).
 
 ## Timer de updates
 
-`systemd/user/DebianUpdates.{service,timer}` chequea apt cada 15 min y pinta
-el contador en el módulo `updates` de polybar. Activación manual (una vez):
+`systemd/user/EndeavourUpdates.{service,timer}` chequea pacman + AUR cada
+15 min y pinta el contador en el módulo `updates` de polybar. Activación
+manual (una vez):
 
 ```bash
-systemctl --user enable --now DebianUpdates.timer
+systemctl --user enable --now EndeavourUpdates.timer
 ```
 
 ## Troubleshooting
 
 ```bash
-# rice rota? volvé a la emilia:
-echo emilia > ~/.config/bspwm/.rice && SoftReload
+# rice rota? volvé a la endeavour:
+echo endeavour > ~/.config/bspwm/.rice && SoftReload
 # polybar sin tema:
-~/.config/bspwm/bin/Theme.sh
+~/.config/bspwm/config/bspwmrc/bin/Theme.sh 2>/dev/null || ~/.config/bspwm/bin/Theme.sh
+# ver updates a mano (repos + AUR):
+~/.config/bspwm/bin/Updates --list
 # journal de xsion:
 journalctl -b --grep="sxhkdrc\|polybar\|bspwm" | tail
 # actualizar desde upstream gh0stzk:
@@ -140,6 +157,6 @@ journalctl -b --grep="sxhkdrc\|polybar\|bspwm" | tail
 
 ## Créditos
 
-- **gh0stzk** (gh0stzk@gmail/dotfiles): estructura completa del entorno — GPL-3.0
+- **gh0stzk** (gh0stzk/dotfiles): estructura completa del entorno — GPL-3.0
 - **JaKoolit**: capa de comandos (Ubuntu-Hyprland)
-- **lucioamarilla**: port Debian 13, instalar v3, patches (14) y presets
+- **lucioamarilla**: port Debian v3, port EndeavourOS v4, patches y presets
